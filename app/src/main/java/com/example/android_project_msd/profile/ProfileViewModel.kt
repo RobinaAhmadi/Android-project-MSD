@@ -9,11 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ProfileViewModel : ViewModel() {
-
-
     private val _uiState = MutableStateFlow(ProfileState())
-
-
     val uiState = _uiState.asStateFlow()
 
     init {
