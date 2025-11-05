@@ -1,5 +1,6 @@
-package com.example.loginbg
+package com.example.android_project_msd
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,20 +23,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.android_project_msd.createprofile.CreateProfileActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                LoginScreen()
+                LoginScreen(onCreateAccountClick = {
+                    startActivity(Intent(this, CreateProfileActivity::class.java))
+                })
             }
         }
     }
 }
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onCreateAccountClick: () -> Unit) {
+  
     // State for inputs
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -144,7 +149,7 @@ fun LoginScreen() {
                 }
 
                 TextButton(
-                    onClick = { /* TODO: navigate to signup */ },
+                    onClick = onCreateAccountClick,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Text("Create account", color = Color.White)
