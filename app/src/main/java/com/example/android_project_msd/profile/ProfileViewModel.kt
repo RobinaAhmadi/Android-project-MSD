@@ -8,27 +8,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Arver fra ViewModel for at overleve konfigurationsændringer (som rotation)
 class ProfileViewModel : ViewModel() {
 
-    // _uiState er privat og kan ændres (Mutable)
-    // Dette er den ENESTE kilde til sandhed
+
     private val _uiState = MutableStateFlow(ProfileState())
 
-    // uiState er offentlig og kan kun læses (Immutable)
-    // Vores UI vil lytte til denne
+
     val uiState = _uiState.asStateFlow()
 
     init {
-        // Kør, så snart ViewModel oprettes
         loadUserProfile()
     }
 
-    // Simulerer at hente brugerdata fra en database eller API
     private fun loadUserProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1000) // Simulerer netværkskald
+            delay(1000)
             _uiState.update {
                 it.copy(
                     name = "Rosin B",
@@ -42,7 +37,6 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    // --- Disse funktioner kaldes af UI'en (Events flyder op) ---
 
     fun onNameChange(newName: String) {
         _uiState.update { it.copy(name = newName) }
@@ -71,10 +65,10 @@ class ProfileViewModel : ViewModel() {
     fun onToggleEditMode() {
         val isCurrentlyEditing = _uiState.value.isEditing
         if (isCurrentlyEditing) {
-            // Brugeren trykkede "Confirm", så vi gemmer
+
             saveProfile()
         } else {
-            // Brugeren trykkede "Edit"
+
             _uiState.update { it.copy(isEditing = true) }
         }
     }
@@ -82,17 +76,17 @@ class ProfileViewModel : ViewModel() {
     private fun saveProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1500) // Simulerer at gemme til database
+            delay(1500)
 
-            // Når det er gemt, stopper vi "Edit" mode og fjerner kodeordet fra state
+
             _uiState.update {
                 it.copy(
                     isEditing = false,
                     isLoading = false,
-                    newPassword = "" // Ryd kodeordsfelt
+                    newPassword = ""
                 )
             }
-            // Her ville du også vise en "Gemt!"-besked (f.eks. med en Snackbar)
+
         }
     }
 }
