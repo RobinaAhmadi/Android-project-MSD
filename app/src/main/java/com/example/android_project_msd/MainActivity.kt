@@ -23,16 +23,29 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.android_project_msd.frontpage.FrontPage
 import com.example.android_project_msd.createprofile.CreateProfileActivity
+import com.example.android_project_msd.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            var showLogin by remember { mutableStateOf(false) }
+
             MaterialTheme {
-                LoginScreen(onCreateAccountClick = {
-                    startActivity(Intent(this, CreateProfileActivity::class.java))
-                })
+                if (showLogin) {
+                    // Show LoginScreen after Get Started is clicked
+                    LoginScreen(
+                        onCreateAccountClick = {
+                            // When "Create account" clicked → open CreateProfileActivity
+                            startActivity(Intent(this, CreateProfileActivity::class.java))
+                        }
+                    )
+                } else {
+                    // Show front page first
+                    FrontPage(onGetStarted = { showLogin = true })
+                }
             }
         }
     }
@@ -40,8 +53,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LoginScreen(onCreateAccountClick: () -> Unit) {
-  
-    // State for inputs
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -54,29 +65,29 @@ fun LoginScreen(onCreateAccountClick: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         )
 
-        // Optional subtle blur (looks nice if bg is busy)
+        // Blur overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .blur(2.dp)
         )
 
-        // Dark gradient overlay for contrast
+        // Gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            Color(0x99000000), // top: semi-transparent black
-                            Color(0x66000000), // middle
-                            Color(0xCC000000)  // bottom: more opaque for controls
+                            Color(0x99000000),
+                            Color(0x66000000),
+                            Color(0xCC000000)
                         )
                     )
                 )
         )
 
-        // Card with inputs
+        // Login form
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,10 +101,11 @@ fun LoginScreen(onCreateAccountClick: () -> Unit) {
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             )
 
-            // Translucent card look
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,10 +120,10 @@ fun LoginScreen(onCreateAccountClick: () -> Unit) {
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,       // border when focused
-                        unfocusedBorderColor = Color.LightGray, // border when not focused
-                        focusedLabelColor = Color.White,        // label color when focused
-                        unfocusedLabelColor = Color.LightGray,  // label color when not focused
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.LightGray,
                         cursorColor = Color.White,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White
