@@ -24,6 +24,16 @@
         <activity
             android:name=".createprofile.CreateProfileActivity"
             android:exported="false"/>
+        <activity
+            android:name=".groups.grouplist.GroupsActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".groups.groupdetail.GroupDetailActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".groups.creategroup.CreateGroupActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>

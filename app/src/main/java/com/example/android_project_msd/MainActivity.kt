@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.android_project_msd.frontpage.FrontPage
 import com.example.android_project_msd.createprofile.CreateProfileActivity
+import com.example.android_project_msd.groups.grouplist.GroupsRoute
 import com.example.android_project_msd.R
 
 class MainActivity : ComponentActivity() {
