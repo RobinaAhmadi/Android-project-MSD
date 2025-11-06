@@ -1,5 +1,6 @@
 package com.example.android_project_msd
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.android_project_msd.createprofile.CreateProfileActivity
 import com.example.android_project_msd.groups.grouplist.GroupsRoute
 
 class MainActivity : ComponentActivity() {
@@ -29,9 +31,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Surface {
-                    GroupsRoute(onBack = { finish() })
-                }
+                LoginScreen(onCreateAccountClick = {
+                    startActivity(Intent(this, CreateProfileActivity::class.java))
+                })
             }
         }
     }
