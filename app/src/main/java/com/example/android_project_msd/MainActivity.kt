@@ -16,9 +16,9 @@ import com.example.android_project_msd.groups.grouplist.GroupsRoute
 import com.example.android_project_msd.login.LoginScreen
 import com.example.android_project_msd.navigation.Routes
 import com.example.android_project_msd.profile.ProfileScreen
-import com.example.android_project_msd.home.HomeScreen
 import com.example.android_project_msd.groups.creategroup.CreateGroupFullRoute
 import com.example.android_project_msd.home.HomeScreen
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Routes.CreateProfile) {
-                        CreateProfileRoute(onDone = { navController.popBackStack() })
+                        CreateProfileRoute(onDone = { navController.popBackStack(); navController.navigate(com.example.android_project_msd.navigation.Routes.Groups) })
                     }
 
                     composable(Routes.Groups) {
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(Routes.CreateGroup) {
                         CreateGroupFullRoute(
-                            onDone = { navController.popBackStack() },
+                            onDone = { navController.popBackStack(); navController.navigate(com.example.android_project_msd.navigation.Routes.Groups) },
                             onCancel = { navController.popBackStack() }
                         )
                     }
@@ -91,3 +91,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

@@ -58,7 +58,10 @@ class CreateGroupFullViewModel : ViewModel() {
 
     fun createGroup(onSuccess: () -> Unit) {
         if (_ui.value.canCreate) {
-            // TODO: Save group to database
+            com.example.android_project_msd.groups.data.GroupsRepository.addGroup(
+                name = _ui.value.groupName,
+                description = _ui.value.description
+            )
             onSuccess()
         }
     }

@@ -1,8 +1,11 @@
 package com.example.android_project_msd.groups.grouplist
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.android_project_msd.groups.data.GroupsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 data class Group(
     val id: String,
@@ -21,56 +24,18 @@ class GroupsViewModel : ViewModel() {
     val ui = _ui.asStateFlow()
 
     init {
-        // Load with some dummy data for demonstration
-        loadDummyGroups()
-    }
-
-    private fun loadDummyGroups() {
-        // You can remove this later when you have real data
-        _ui.value = GroupsUiState(
-            groups = listOf(
-                Group(
-                    id = "1",
-                    name = "Weekend Trip",
-                    description = "Barcelona 2025",
-                    memberCount = 4,
-                    balance = 250.50
-                ),
-                Group(
-                    id = "2",
-                    name = "Apartment",
-                    description = "Monthly expenses",
-                    memberCount = 3,
-                    balance = -120.00
-                ),
-                Group(
-                    id = "3",
-                    name = "Study Group",
-                    description = "Coffee and snacks",
-                    memberCount = 5,
-                    balance = 45.25
-                )
-            )
-        )
+        viewModelScope.launch {
+            GroupsRepository.groups.collect { list ->
+                _ui.value = GroupsUiState(groups = list)
+            }
+        }
     }
 
     fun createGroup(name: String, description: String) {
-        val newGroup = Group(
-            id = System.currentTimeMillis().toString(),
-            name = name,
-            description = description,
-            memberCount = 1, // Just the creator initially
-            balance = 0.0
-        )
-
-        val currentGroups = _ui.value.groups.toMutableList()
-        currentGroups.add(0, newGroup) // Add to the top
-
-        _ui.value = _ui.value.copy(groups = currentGroups)
+        GroupsRepository.addGroup(name, description)
     }
 
     fun deleteGroup(groupId: String) {
-        val updatedGroups = _ui.value.groups.filter { it.id != groupId }
-        _ui.value = _ui.value.copy(groups = updatedGroups)
+        GroupsRepository.removeGroup(groupId)
     }
 }

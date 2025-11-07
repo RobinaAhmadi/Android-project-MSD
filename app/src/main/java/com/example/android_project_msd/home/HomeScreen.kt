@@ -3,6 +3,7 @@ package com.example.android_project_msd.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.*
@@ -25,18 +26,24 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(Color(0xFF131B63), Color(0xFF481162))))
     ) {
-        // Profile icon top-left
-        IconButton(
-            onClick = onProfile,
+        // Profile button (larger, with shadow)
+        Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
+                .size(56.dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.15f),
+            shadowElevation = 8.dp
         ) {
-            Icon(
-                imageVector = Icons.Outlined.AccountCircle,
-                contentDescription = "Profile",
-                tint = Color.White
-            )
+            IconButton(onClick = onProfile, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = Icons.Outlined.AccountCircle,
+                    contentDescription = "Profile",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
 
         // Centered actions
@@ -65,8 +72,11 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 12.dp),
-            color = Color.DarkGray
+            color = Color.White.copy(alpha = 0.85f)
         )
     }
 }
+
+
+
 
