@@ -44,7 +44,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.foundation)
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.8.2")
 
     //Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))
@@ -57,9 +58,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    //Lifecycle + viewmodel in compose
-    implementation("androidx.navigation:navigation-compose:2.8.2")
+    // Lifecycle + ViewModel in Compose
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
 
     //Test dependencies

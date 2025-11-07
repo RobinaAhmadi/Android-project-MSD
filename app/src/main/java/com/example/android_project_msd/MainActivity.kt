@@ -16,6 +16,9 @@ import com.example.android_project_msd.groups.grouplist.GroupsRoute
 import com.example.android_project_msd.login.LoginScreen
 import com.example.android_project_msd.navigation.Routes
 import com.example.android_project_msd.profile.ProfileScreen
+import com.example.android_project_msd.home.HomeScreen
+import com.example.android_project_msd.groups.creategroup.CreateGroupFullRoute
+import com.example.android_project_msd.home.HomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +40,11 @@ class MainActivity : ComponentActivity() {
                     composable(Routes.Login) {
                         LoginScreen(
                             onCreateAccountClick = { navController.navigate(Routes.CreateProfile) },
-                            onSignIn = { navController.navigate(Routes.Groups) }
+                            onSignIn = {
+                                navController.navigate(Routes.Home) {
+                                    popUpTo(Routes.FrontPage) { inclusive = true }
+                                }
+                            }
                         )
                     }
 
@@ -52,6 +59,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    composable(Routes.Home) {
+                        HomeScreen(
+                            onProfile = { navController.navigate(Routes.Profile) },
+                            onCreateGroup = { navController.navigate(Routes.CreateGroup) },
+                            onMyGroups = { navController.navigate(Routes.Groups) }
+                        )
+                    }
+
                     composable(
                         route = Routes.GroupDetail,
                         arguments = listOf(navArgument(Routes.GroupDetailArg) { type = NavType.StringType })
@@ -63,12 +78,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable(Routes.Profile) {
-                        ProfileScreen()
+                    composable(Routes.Profile) { ProfileScreen() }
+
+                    composable(Routes.CreateGroup) {
+                        CreateGroupFullRoute(
+                            onDone = { navController.popBackStack() },
+                            onCancel = { navController.popBackStack() }
+                        )
                     }
                 }
             }
         }
     }
 }
-
