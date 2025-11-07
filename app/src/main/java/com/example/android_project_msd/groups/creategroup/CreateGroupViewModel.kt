@@ -3,8 +3,9 @@ package com.example.android_project_msd.groups.creategroup
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.example.android_project_msd.groups.groupdetail.GroupDetailActivity
-
+import com.example.android_project_msd.groups.data.GroupsRepository
+import com.example.android_project_msd.groups.data.GroupDetailsStore
+import com.example.android_project_msd.groups.data.SimpleMember
 data class CreateGroupMember(
     val id: String,
     val name: String,
@@ -58,11 +59,17 @@ class CreateGroupFullViewModel : ViewModel() {
 
     fun createGroup(onSuccess: () -> Unit) {
         if (_ui.value.canCreate) {
-            com.example.android_project_msd.groups.data.GroupsRepository.addGroup(
+            val id = GroupsRepository.addGroupReturnId(
                 name = _ui.value.groupName,
                 description = _ui.value.description
+            )
+            GroupDetailsStore.saveInitialMembers(
+                id,
+                _ui.value.members.map { SimpleMember(it.name, it.email) }
             )
             onSuccess()
         }
     }
 }
+
+

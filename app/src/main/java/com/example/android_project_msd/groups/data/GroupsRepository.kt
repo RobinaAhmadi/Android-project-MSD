@@ -15,19 +15,26 @@ object GroupsRepository {
         )
     }
 
-    fun addGroup(name: String, description: String) {
+    fun addGroupReturnId(name: String, description: String): String {
+        val id = System.currentTimeMillis().toString()
         val newGroup = Group(
-            id = System.currentTimeMillis().toString(),
+            id = id,
             name = name,
             description = description,
             memberCount = 1,
             balance = 0.0
         )
         _groups.value = listOf(newGroup) + _groups.value
+        return id
+    }
+
+    fun addGroup(name: String, description: String) {
+        addGroupReturnId(name, description)
     }
 
     fun removeGroup(id: String) {
         _groups.value = _groups.value.filterNot { it.id == id }
     }
 }
+
 
