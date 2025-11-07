@@ -28,7 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun GroupsRoute(
     vm: GroupsViewModel = viewModel(),
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onOpenGroup: (String) -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -124,7 +125,7 @@ fun GroupsRoute(
                             items(ui.groups) { group ->
                                 GroupCard(
                                     group = group,
-                                    onClick = { /* TODO: Navigate to group details */ }
+                                    onClick = { onOpenGroup(group.id) }
                                 )
                             }
                         }
@@ -332,4 +333,3 @@ fun GroupsScreenPreview() {
         GroupsRoute(onBack = {})
     }
 }
-

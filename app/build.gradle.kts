@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.foundation)
+    implementation("androidx.navigation:navigation-compose:2.7.4")
 
     //Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))

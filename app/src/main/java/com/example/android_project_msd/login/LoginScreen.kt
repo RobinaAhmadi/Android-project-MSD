@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.sp
 import com.example.android_project_msd.R
 
 @Composable
-fun LoginScreen(onCreateAccountClick: () -> Unit) {
+fun LoginScreen(
+    onCreateAccountClick: () -> Unit,
+    onSignIn: () -> Unit = {}
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -120,7 +123,7 @@ fun LoginScreen(onCreateAccountClick: () -> Unit) {
                 Spacer(Modifier.height(16.dp))
 
                 Button(
-                    onClick = { /* TODO: handle login */ },
+                    onClick = onSignIn,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -139,4 +142,3 @@ fun LoginScreen(onCreateAccountClick: () -> Unit) {
         }
     }
 }
-
