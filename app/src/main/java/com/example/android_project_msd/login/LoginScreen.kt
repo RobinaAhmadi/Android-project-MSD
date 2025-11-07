@@ -21,14 +21,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.android_project_msd.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
     onCreateAccountClick: () -> Unit,
     onSignIn: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val vm: LoginViewModel = viewModel()
+    val ui by vm.ui.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -84,8 +85,8 @@ fun LoginScreen(
                     .padding(16.dp)
             ) {
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = ui.email,
+                    onValueChange = { vm.updateEmail(it) },
                     label = { Text("Email") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -103,8 +104,8 @@ fun LoginScreen(
                 Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = ui.password,
+                    onValueChange = { vm.updatePassword(it) },
                     label = { Text("Password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -123,11 +124,25 @@ fun LoginScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Button(
-                    onClick = onSignIn,
+                    onClick = {
+                        vm.signIn(
+                            onSuccess = onSignIn,
+                            onError = { }
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Sign in")
+                    if (ui.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White)
+                    } else {
+                        Text("Sign in")
+                    }
+                }
+
+                if (ui.error != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(ui.error!!, color = Color(0xFFFFCDD2))
                 }
 
                 TextButton(

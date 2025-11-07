@@ -1,6 +1,7 @@
 package com.example.android_project_msd.createprofile
 
 import androidx.lifecycle.ViewModel
+import com.example.android_project_msd.auth.MockAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -37,10 +38,17 @@ class CreateProfileViewModel : ViewModel() {
     }
 
     fun submit(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        if (_ui.value.canSubmit) {
+        val u = _ui.value
+        if (!u.canSubmit) {
+            onError("Please fill all required fields correctly.")
+            return
+        }
+
+        val ok = MockAuthRepository.register(email = u.email, password = u.password)
+        if (ok) {
             onSuccess()
         } else {
-            onError("Please fill all required fields correctly.")
+            onError("An account with this email already exists.")
         }
     }
 }
