@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Android-project-MSD"
 include(":app")
+include(":server")
