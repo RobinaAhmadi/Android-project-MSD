@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.LocalTextStyle
 
-
 @Composable
 fun CreateProfileRoute(
     vm: CreateProfileViewModel = viewModel(),
@@ -46,14 +45,14 @@ fun CreateProfileRoute(
 
     Box(Modifier.fillMaxSize()) {
 
-        // Top gradient
+        // Updated top gradient (matches front page)
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(260.dp)
                 .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF112A66), Color(0xFF0B1B3D))
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF131B63), Color(0xFF481162))
                     )
                 )
         )
@@ -69,7 +68,7 @@ fun CreateProfileRoute(
                 "Create Your\nAccount",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier.align(Alignment.TopStart)
             )
@@ -78,13 +77,13 @@ fun CreateProfileRoute(
                     .align(Alignment.CenterEnd)
                     .size(92.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.95f)),
+                    .background(Color.White.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Outlined.AccountCircle,
                     contentDescription = null,
-                    tint = Color(0xFF1E1E1E),
+                    tint = Color.White,
                     modifier = Modifier.fillMaxSize(0.8f)
                 )
             }
@@ -199,17 +198,17 @@ fun CreateProfileRoute(
                     }
                 }
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(24.dp))
 
-                // SIGN UP
+                // Modern gradient button (matching front page)
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .clip(RoundedCornerShape(28.dp))
+                        .clip(RoundedCornerShape(30.dp))
                         .background(
                             Brush.horizontalGradient(
-                                listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                                listOf(Color(0xFF261863), Color(0xFFD975BB))
                             )
                         )
                         .clickable(enabled = ui.canSubmit) {
@@ -217,13 +216,13 @@ fun CreateProfileRoute(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("SIGN UP", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text("SIGN UP", color = Color.White, fontWeight = FontWeight.Bold)
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Text(
                     "Cancel",
-                    color = Color(0xFF8E8E93),
+                    color = Color(0xFF9E9E9E),
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .clickable { onDone() }
@@ -233,7 +232,12 @@ fun CreateProfileRoute(
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     Text("Already have an account? ", color = Color(0xFF8E8E93))
-                    Text("Sign In", fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { onDone() })
+                    Text(
+                        "Sign In",
+                        color = Color(0xFFD975BB),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { onDone() }
+                    )
                 }
             }
         }
@@ -249,7 +253,7 @@ private fun LineInput(
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false
 ) {
-    Text(label, style = fieldLabelStyle())
+    Text(label, style = fieldLabelStyle().copy(color = Color(0xFF261863)))
     Spacer(Modifier.height(6.dp))
     LineInputCore(
         value = value,
@@ -259,7 +263,7 @@ private fun LineInput(
         keyboardType = keyboardType,
         isPassword = isPassword
     )
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(10.dp))
 }
 
 @Composable
@@ -286,7 +290,7 @@ private fun LineInputCore(
             color = Color(0xFF1E1E1E),
             textAlign = TextAlign.Start
         ),
-        cursorBrush = SolidColor(Color(0xFF3D5AFE)),
+        cursorBrush = SolidColor(Color(0xFFD975BB)),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         modifier = modifier.padding(vertical = 6.dp),
@@ -318,7 +322,7 @@ private fun LineInputCore(
     HorizontalDivider(
         modifier = Modifier.padding(top = 2.dp),
         thickness = 1.dp,
-        color = Color(0x1A000000)
+        color = Color(0x1A261863)
     )
 }
 
