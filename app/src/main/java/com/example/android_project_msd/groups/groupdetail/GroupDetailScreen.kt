@@ -3,6 +3,7 @@ package com.example.android_project_msd.groups.groupdetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.android_project_msd.groups.groupdetail.GroupDetailViewModel
+import com.example.android_project_msd.groups.data.Expense
+import com.example.android_project_msd.groups.data.Settlement
 
 @Composable
 fun GroupDetailRoute(
@@ -33,6 +36,7 @@ fun GroupDetailRoute(
     val ui by vm.ui.collectAsState()
     var showAddExpenseDialog by remember { mutableStateOf(false) }
     var showAddMemberDialog by remember { mutableStateOf(false) }
+    var showRecordPaymentDialog by remember {mutableStateOf(false)}
 
     LaunchedEffect(groupId) {
         vm.loadGroup(groupId)
@@ -122,6 +126,29 @@ fun GroupDetailRoute(
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF9E9E9E)
                     )
+
+                    // For when all debts are settled
+                    if (ui.isDebtsSettled && ui.expenses.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                "All debts settled!",
+                                color = Color(0xFF4CAF50),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
             }
 
@@ -161,7 +188,36 @@ fun GroupDetailRoute(
                                 isPrimary = false
                             )
                         }
+                        Spacer(Modifier.height(12.dp))
+
+                        //Record/add payment button
+                        ActionButton(
+                            text = "Record Payment",
+                            icon = Icons.Default.Payment,
+                            onClick = { showRecordPaymentDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            isPrimary = false
+                        )
+
                         Spacer(Modifier.height(24.dp))
+                    }
+
+                    //Section for settlement suggestion
+                    if(ui.settlements.isNotEmpty() && !ui.isDebtsSettled) {
+                        item {
+                            SectionHeader("Settlement Suggestion")
+                            Text(
+                                "Optimal way to settle ALL debts",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF757575)
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        items(ui.settlements) { settlement ->
+                            SettlementCard(settlement = settlement)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                        item { Spacer(Modifier.height(22.dp))}
                     }
 
                     // Members section
@@ -237,6 +293,60 @@ fun GroupDetailRoute(
                 showAddMemberDialog = false
             }
         )
+    }
+
+    if (showRecordPaymentDialog) {
+        RecordPaymentDialog(
+            members = ui.members,
+            onDismiss = { showAddMemberDialog = false },
+            onRecord = { from, to, amount ->
+                vm.recordPayment(from, to, amount)
+                showRecordPaymentDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun SettlementCard(settlement: com.example.android_project_msd.groups.data.Settlement) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        tonalElevation = 1.dp,
+        color = Color(0xFFFFF8E1)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.TrendingFlat,
+                contentDescription = null,
+                tint = Color(0xFFF57C00),
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "${settlement.fromPerson} owe ${settlement.toPerson}",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+                Text(
+                    "Suggested settlement",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF757575)
+                )
+            }
+            Text(
+                "${settlement.amount} DKK",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF57C00)
+                )
+            )
+        }
     }
 }
 
@@ -371,7 +481,10 @@ fun ExpenseItem(expense: Expense) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Receipt,
+                    if (expense.description.contains("Payment", ignoreCase = true))
+                        Icons.Default.Payment
+                    else
+                        Icons.Default.Receipt,
                     contentDescription = null,
                     tint = Color(0xFF163A96),
                     modifier = Modifier.size(24.dp)
@@ -583,6 +696,133 @@ fun AddMemberDialog(
                 enabled = name.isNotBlank() && email.isNotBlank()
             ) {
                 Text("ADD")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("CANCEL")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecordPaymentDialog(
+    members: List<GroupMember>,
+    onDismiss: () -> Unit,
+    onRecord: (String, String, Double) -> Unit
+) {
+    var amount by remember { mutableStateOf("")}
+    var selectedFrom by remember { mutableStateOf(members.firstOrNull()?.name ?: "")}
+    var selectedTo by remember { mutableStateOf(members.getOrNull(1)?.name ?: "") }
+    var expandedFrom by remember { mutableStateOf(false) }
+    var expandedTo by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Record Payment",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+        },
+        text = {
+            Column(
+                Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Record when someone pays their debt",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF757575)
+                )
+
+                // From dropdown
+                ExposedDropdownMenuBox(
+                    expanded = expandedFrom,
+                    onExpandedChange = { expandedFrom = !expandedFrom }
+                ) {
+                    OutlinedTextField(
+                        value = selectedFrom,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("From (payer)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrom) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedFrom,
+                        onDismissRequest = { expandedFrom = false }
+                    ) {
+                        members.forEach { member ->
+                            DropdownMenuItem(
+                                text = { Text(member.name) },
+                                onClick = {
+                                    selectedFrom = member.name
+                                    expandedFrom = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // To dropdown
+                ExposedDropdownMenuBox(
+                    expanded = expandedTo,
+                    onExpandedChange = { expandedTo = !expandedTo }
+                ) {
+                    OutlinedTextField(
+                        value = selectedTo,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("To (receiver)") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTo) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedTo,
+                        onDismissRequest = { expandedTo = false }
+                    ) {
+                        members.forEach { member ->
+                            DropdownMenuItem(
+                                text = { Text(member.name) },
+                                onClick = {
+                                    selectedTo = member.name
+                                    expandedTo = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = {
+                        amount = it.filter { char -> char.isDigit() || char == '.' }
+                    },
+                    label = { Text("Amount (DKK)") },
+                    placeholder = { Text("0.00") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val amountDouble = amount.toDoubleOrNull() ?: 0.0
+                    onRecord(selectedFrom, selectedTo, amountDouble)
+                },
+                enabled = amount.isNotBlank() && selectedFrom != selectedTo
+            ) {
+                Text("RECORD")
             }
         },
         dismissButton = {

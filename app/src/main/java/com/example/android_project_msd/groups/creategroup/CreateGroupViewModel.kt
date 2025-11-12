@@ -59,9 +59,12 @@ class CreateGroupFullViewModel : ViewModel() {
 
     fun createGroup(onSuccess: () -> Unit) {
         if (_ui.value.canCreate) {
+            val memberCount = _ui.value.members.size + 1
+
             val id = GroupsRepository.addGroupReturnId(
                 name = _ui.value.groupName,
-                description = _ui.value.description
+                description = _ui.value.description,
+                memberCount = memberCount
             )
             GroupDetailsStore.saveInitialMembers(
                 id,
