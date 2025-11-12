@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
-}    
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+}
 
 android {
     namespace = "com.example.android_project_msd"
@@ -49,7 +50,8 @@ dependencies {
 
     //Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.10.01"))
+    implementation(libs.androidx.room.common.jvm)
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.01"))
 
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.compose.ui:ui")
@@ -61,6 +63,11 @@ dependencies {
     // Lifecycle + ViewModel in Compose
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
 
     //Test dependencies
