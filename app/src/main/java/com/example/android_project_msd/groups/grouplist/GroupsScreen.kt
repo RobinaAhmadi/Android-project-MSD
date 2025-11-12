@@ -126,7 +126,7 @@ fun GroupsRoute(
                             items(ui.groups) { group ->
                                 GroupCard(
                                     group = group,
-                                    onClick = { /* TODO: Navigate to group details */ }
+                                    onClick = { onOpenGroup(group.id) }
                                 )
                             }
                         }
