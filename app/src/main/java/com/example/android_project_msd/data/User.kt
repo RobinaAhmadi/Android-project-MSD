@@ -10,6 +10,9 @@ data class User(
     val name: String,
     val email: String,
     val phoneNumber: String,
-    val passwordHash: String
+    val passwordHash: String,
+    val cardHolderName: String,
+    val cardNumber: String,
+    val expiryDate: String,
+    val cvv: String
 )
-

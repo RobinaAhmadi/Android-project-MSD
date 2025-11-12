@@ -12,6 +12,6 @@ interface UserDao {
     suspend fun insert(user: User)
 
     @Query("SELECT * FROM users WHERE email = :email")
-    fun getUserByEmail(email: String): Flow<User?>
+    suspend fun getUserByEmail(email: String): User?
 }
 
