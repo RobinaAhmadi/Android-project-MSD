@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.android_project_msd.groups.data.GroupsRepository
 import com.example.android_project_msd.groups.data.GroupDetailsStore
+import com.example.android_project_msd.groups.data.DebtCalculator
+import com.example.android_project_msd.groups.data.Expense
+import com.example.android_project_msd.groups.data.Settlement
 
 data class GroupMember(
     val id: String,
@@ -14,20 +17,13 @@ data class GroupMember(
     val balance: Double // Positive = owed money, Negative = owes money
 )
 
-data class Expense(
-    val id: String,
-    val description: String,
-    val amount: Double,
-    val paidBy: String,
-    val splitAmong: List<String>,
-    val date: String
-)
-
 data class GroupDetailUiState(
     val group: Group? = null,
     val members: List<GroupMember> = emptyList(),
     val expenses: List<Expense> = emptyList(),
-    val userBalance: Double = 0.0
+    val userBalance: Double = 0.0,
+    val settlements: List<Settlement> = emptyList(),
+    val isDebtsSettled: Boolean = true
 )
 
 class GroupDetailViewModel : ViewModel() {
@@ -39,32 +35,32 @@ class GroupDetailViewModel : ViewModel() {
         val repoGroup = GroupsRepository.groups.value.firstOrNull { it.id == groupId }
         val savedMembers = GroupDetailsStore.getMembers(groupId)
 
-        if (repoGroup != null && savedMembers.isNotEmpty()) {
+        if (repoGroup != null) {
             val members = listOf(
                 GroupMember(id = "you", name = currentUserName, email = "you@email.com", balance = 0.0)
             ) + savedMembers.mapIndexed { idx, m ->
                 GroupMember(id = "m$idx", name = m.name, email = m.email, balance = 0.0)
             }
+
             _ui.value = GroupDetailUiState(
                 group = repoGroup.copy(memberCount = members.size),
                 members = members,
                 expenses = emptyList(),
-                userBalance = 0.0
+                userBalance = 0.0,
+                settlements = emptyList(),
+                isDebtsSettled = true
             )
             return
         }
 
-        // Fallback demo if not found or no saved members
+        // If group not found, show empty state
         _ui.value = GroupDetailUiState(
-            group = repoGroup ?: Group(groupId, "Weekend Trip", "Barcelona 2025", 4, 0.0),
-            members = listOf(
-                GroupMember("1", currentUserName, "you@email.com", 0.0),
-                GroupMember("2", "Sarah Johnson", "sarah@email.com", 0.0),
-                GroupMember("3", "Mike Chen", "mike@email.com", 0.0),
-                GroupMember("4", "Emma Wilson", "emma@email.com", 0.0)
-            ),
+            group = null,
+            members = emptyList(),
             expenses = emptyList(),
-            userBalance = 0.0
+            userBalance = 0.0,
+            settlements = emptyList(),
+            isDebtsSettled = true
         )
     }
 
@@ -75,14 +71,14 @@ class GroupDetailViewModel : ViewModel() {
             amount = amount,
             paidBy = paidBy,
             splitAmong = splitAmong,
-            date = "Today"
+            date = getCurrentDate()
         )
 
         val currentExpenses = _ui.value.expenses.toMutableList()
         currentExpenses.add(0, newExpense)
 
         _ui.value = _ui.value.copy(expenses = currentExpenses)
-        recalcBalances()
+        recalcDebts()
     }
 
     fun addMember(name: String, email: String) {
@@ -100,38 +96,75 @@ class GroupDetailViewModel : ViewModel() {
             members = currentMembers,
             group = _ui.value.group?.copy(memberCount = currentMembers.size)
         )
-        recalcBalances()
+        recalcDebts()
     }
 
+    // Records a payment made between two members
     fun recordPayment(fromName: String, toName: String, amount: Double) {
         if (amount <= 0) return
+
+        // Create a special "payment" expense
         val payment = Expense(
             id = System.currentTimeMillis().toString(),
-            description = "Payment",
+            description = "Payment from $fromName to $toName",
             amount = amount,
-            paidBy = toName,
-            splitAmong = listOf(fromName),
-            date = "Today"
+            paidBy = fromName,  // Person paying is the payer
+            splitAmong = listOf(toName),  // Person receiving splits it
+            date = getCurrentDate()
         )
+
         val list = _ui.value.expenses.toMutableList()
         list.add(0, payment)
         _ui.value = _ui.value.copy(expenses = list)
-        recalcBalances()
+        recalcDebts()
     }
 
-    private fun recalcBalances() {
+    // Debt calculation main function
+    private fun recalcDebts() {
         val members = _ui.value.members
         if (members.isEmpty()) return
-        val nameToBal = mutableMapOf<String, Double>().apply { members.forEach { this[it.name] = 0.0 } }
-        _ui.value.expenses.forEach { exp ->
-            val participants = if (exp.splitAmong.isEmpty()) members.map { it.name } else exp.splitAmong
-            val share = if (participants.isNotEmpty()) exp.amount / participants.size else 0.0
-            participants.forEach { p -> nameToBal[p] = (nameToBal[p] ?: 0.0) - share }
-            nameToBal[exp.paidBy] = (nameToBal[exp.paidBy] ?: 0.0) + exp.amount
+
+        val memberNames = members.map { it.name }
+
+        // Use DebtCalculator to calculate balances
+        val balances = DebtCalculator.calculateBalances(
+            expenses = _ui.value.expenses,
+            members = memberNames
+        )
+
+        // Calculate optimal settlements
+        val settlements = DebtCalculator.calculateSettlements(balances)
+
+        // Check if all debts are settled
+        val isSettled = DebtCalculator.areAllDebtsSettled(balances)
+
+        // Update members with their new balances
+        val updatedMembers = members.map { member ->
+            member.copy(balance = balances[member.name] ?: 0.0)
         }
-        val newMembers = members.map { m -> m.copy(balance = kotlin.math.round((nameToBal[m.name] ?: 0.0) * 100) / 100.0) }
-        val userBal = nameToBal[currentUserName] ?: 0.0
-        _ui.value = _ui.value.copy(members = newMembers, userBalance = kotlin.math.round(userBal * 100) / 100.0)
+
+        // Get current user's balance
+        val userBalance = DebtCalculator.getPersonTotalBalance(balances, currentUserName)
+
+        _ui.value = _ui.value.copy(
+            members = updatedMembers,
+            userBalance = userBalance,
+            settlements = settlements,
+            isDebtsSettled = isSettled
+        )
+    }
+
+    // X owe you / You owe X
+    fun getSettlementsForPerson(personName: String): List<Settlement> {
+        return _ui.value.settlements.filter {
+            it.fromPerson == personName || it.toPerson == personName
+        }
+    }
+
+    //Fetches the current date
+    private fun getCurrentDate(): String {
+        val now = System.currentTimeMillis()
+        val today = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+        return today.format(java.util.Date(now))
     }
 }
-
