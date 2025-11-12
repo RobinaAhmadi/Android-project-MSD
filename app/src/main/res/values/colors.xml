@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary colors -->
+    <color name="pink_primary">#D975BB</color>
+    <color name="indigo_700">#261863</color>
+    <color name="indigo_900">#171532</color>
+
+    <!-- Secondary colors-->
+    <color name="gray_600">#747384</color>
+    <color name="lavender_300">#A8A3C1</color>
+    <color name="violet_500">#7056B2</color>
+
+    <!-- Gradients -->
+    <color name="grad_start_deep">#131B63</color>
+    <color name="grad_end_deep">#481162</color>
+
+    <color name="grad_btn_light">#FFFFFF</color>
+    <color name="grad_btn_mid">#B971A3</color>
+    <color name="grad_btn_dark">#A03E82</color>
+
+    <color name="grad_alt_1">#8462E1</color>
+    <color name="grad_alt_2">#55389B</color>
+    <color name="grad_alt_3">#A03E82</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black_80">#CC000000</color>
 </resources>
