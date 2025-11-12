@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_project_msd.data.AppDatabase
 import com.example.android_project_msd.data.User
+import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -65,6 +66,13 @@ class CreateProfileViewModel(application: Application) : AndroidViewModel(applic
                     cvv = u.cvv
                 )
                 userDao.insert(newUser)
+
+                // Hent den nyoprettede bruger for at få ID'et
+                val createdUser = userDao.getUserByEmail(u.email)
+                if (createdUser != null) {
+                    UserSession.login(createdUser.id, createdUser.email)
+                }
+
                 onSuccess()
             }
         }

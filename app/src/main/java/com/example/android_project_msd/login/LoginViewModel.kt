@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_project_msd.data.AppDatabase
+import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +39,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             _ui.value = _ui.value.copy(isLoading = true, error = null)
             val user = userDao.getUserByEmail(email)
 
-            if (user != null && user.passwordHash == password) { // Husk at sammenligne hashede passwords i en rigtig app
+            if (user != null && user.passwordHash == password) {
+                // Gem brugerens session
+                UserSession.login(user.id, user.email)
+
                 _ui.value = _ui.value.copy(isLoading = false, error = null)
                 onSuccess()
             } else {
