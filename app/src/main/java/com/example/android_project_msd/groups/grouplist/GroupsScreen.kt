@@ -29,10 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 fun GroupsRoute(
     vm: GroupsViewModel = viewModel(),
     onBack: () -> Unit = {},
-    onOpenGroup: (String) -> Unit = {}
+    onOpenGroup: (String) -> Unit = {},
+    onCreateGroup: () -> Unit = {}
 ) {
+
     val ui by vm.ui.collectAsState()
-    var showCreateDialog by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         // Top gradient header
@@ -125,7 +126,7 @@ fun GroupsRoute(
                             items(ui.groups) { group ->
                                 GroupCard(
                                     group = group,
-                                    onClick = { onOpenGroup(group.id) }
+                                    onClick = { /* TODO: Navigate to group details */ }
                                 )
                             }
                         }
@@ -144,7 +145,7 @@ fun GroupsRoute(
                                     listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
                                 )
                             )
-                            .clickable { showCreateDialog = true },
+                            .clickable { onCreateGroup() },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -164,17 +165,6 @@ fun GroupsRoute(
                 }
             }
         }
-    }
-
-    // Create Group Dialog
-    if (showCreateDialog) {
-        CreateGroupDialog(
-            onDismiss = { showCreateDialog = false },
-            onCreate = { name, description ->
-                vm.createGroup(name, description)
-                showCreateDialog = false
-            }
-        )
     }
 }
 
@@ -270,61 +260,6 @@ fun GroupCard(
     }
 }
 
-@Composable
-fun CreateGroupDialog(
-    onDismiss: () -> Unit,
-    onCreate: (String, String) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                "Create New Group",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-        },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Group Name") },
-                    placeholder = { Text("e.g., Weekend Trip") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
-                    placeholder = { Text("e.g., Barcelona 2025") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 2
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onCreate(name, description) },
-                enabled = name.isNotBlank()
-            ) {
-                Text("CREATE")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL")
-            }
-        }
-    )
-}
-
 // Preview for Android Studio
 @Preview(showBackground = true, heightDp = 800)
 @Composable
@@ -333,3 +268,4 @@ fun GroupsScreenPreview() {
         GroupsRoute(onBack = {})
     }
 }
+

@@ -9,19 +9,16 @@ object GroupsRepository {
     val groups = _groups.asStateFlow()
 
     init {
-        _groups.value = listOf(
-            Group(id = "1", name = "Weekend Trip", description = "Barcelona 2025", memberCount = 4, balance = 250.50),
-            Group(id = "2", name = "Apartment", description = "Monthly expenses", memberCount = 3, balance = -120.00)
-        )
+        _groups.value = emptyList()
     }
 
-    fun addGroupReturnId(name: String, description: String): String {
+    fun addGroupReturnId(name: String, description: String, memberCount: Int = 1): String {
         val id = System.currentTimeMillis().toString()
         val newGroup = Group(
             id = id,
             name = name,
             description = description,
-            memberCount = 1,
+            memberCount = memberCount,
             balance = 0.0
         )
         _groups.value = listOf(newGroup) + _groups.value
