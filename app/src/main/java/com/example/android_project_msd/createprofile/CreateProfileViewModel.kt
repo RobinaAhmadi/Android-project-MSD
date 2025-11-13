@@ -1,9 +1,14 @@
 package com.example.android_project_msd.createprofile
 
-import androidx.lifecycle.ViewModel
-import com.example.android_project_msd.auth.MockAuthRepository
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.android_project_msd.data.AppDatabase
+import com.example.android_project_msd.data.User
+import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 data class CreateProfileUiState(
     val username: String = "",
@@ -18,14 +23,15 @@ data class CreateProfileUiState(
     val showPassword: Boolean = false
 ) {
     val isEmailValid: Boolean get() = email.contains("@")
-    val isPasswordValid: Boolean get() = password.length >= 6
-    val isExpiryValid: Boolean get() = expiry.length >= 4
+    val isPasswordValid: Boolean get() = password.length >= 1
+    val isExpiryValid: Boolean get() = expiry.length >= 1
     val isCvvValid: Boolean get() = cvv.length in 3..4
     val canSubmit: Boolean
-        get() = username.isNotBlank() && isEmailValid && isPasswordValid
+        get() = username.isNotBlank() && isEmailValid && isPasswordValid && phone.isNotBlank() && cardHolder.isNotBlank() && cardNumber.isNotBlank() && expiry.isNotBlank() && cvv.isNotBlank()
 }
 
-class CreateProfileViewModel : ViewModel() {
+class CreateProfileViewModel(application: Application) : AndroidViewModel(application) {
+    private val userDao = AppDatabase.getDatabase(application).userDao()
     private val _ui = MutableStateFlow(CreateProfileUiState())
     val ui = _ui.asStateFlow()
 
@@ -44,11 +50,31 @@ class CreateProfileViewModel : ViewModel() {
             return
         }
 
-        val ok = MockAuthRepository.register(email = u.email, password = u.password)
-        if (ok) {
-            onSuccess()
-        } else {
-            onError("An account with this email already exists.")
+        viewModelScope.launch {
+            val existingUser = userDao.getUserByEmail(u.email)
+            if (existingUser != null) {
+                onError("An account with this email already exists.")
+            } else {
+                val newUser = User(
+                    name = u.username,
+                    email = u.email,
+                    phoneNumber = u.countryCode + u.phone,
+                    passwordHash = u.password, // Husk at hashe dette i en rigtig app!
+                    cardHolderName = u.cardHolder,
+                    cardNumber = u.cardNumber,
+                    expiryDate = u.expiry,
+                    cvv = u.cvv
+                )
+                userDao.insert(newUser)
+
+                // Hent den nyoprettede bruger for at få ID'et
+                val createdUser = userDao.getUserByEmail(u.email)
+                if (createdUser != null) {
+                    UserSession.login(createdUser.id, createdUser.email)
+                }
+
+                onSuccess()
+            }
         }
     }
 }

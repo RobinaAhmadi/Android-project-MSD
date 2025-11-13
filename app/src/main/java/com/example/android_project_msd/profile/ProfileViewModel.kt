@@ -1,14 +1,17 @@
 package com.example.android_project_msd.profile
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android_project_msd.data.AppDatabase
+import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+    private val userDao = AppDatabase.getDatabase(application).userDao()
     private val _uiState = MutableStateFlow(ProfileState())
     val uiState = _uiState.asStateFlow()
 
@@ -19,20 +22,29 @@ class ProfileViewModel : ViewModel() {
     private fun loadUserProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1000)
-            _uiState.update {
-                it.copy(
-                    name = "Rosin B",
-                    phone = "24 24 24 24",
-                    email = "nunjugugu@",
-                    alertOnNewPayment = true,
-                    alertOnMissingPayment = false,
-                    isLoading = false
-                )
+
+            val userId = UserSession.currentUserId
+            if (userId != null) {
+                val user = userDao.getUserById(userId)
+                if (user != null) {
+                    _uiState.update {
+                        it.copy(
+                            name = user.name,
+                            phone = user.phoneNumber,
+                            email = user.email,
+                            alertOnNewPayment = true, // Disse kan tilføjes til User-tabellen senere
+                            alertOnMissingPayment = false,
+                            isLoading = false
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
-
 
     fun onNameChange(newName: String) {
         _uiState.update { it.copy(name = newName) }
@@ -61,10 +73,8 @@ class ProfileViewModel : ViewModel() {
     fun onToggleEditMode() {
         val isCurrentlyEditing = _uiState.value.isEditing
         if (isCurrentlyEditing) {
-
             saveProfile()
         } else {
-
             _uiState.update { it.copy(isEditing = true) }
         }
     }
@@ -72,8 +82,21 @@ class ProfileViewModel : ViewModel() {
     private fun saveProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(1500)
 
+            val userId = UserSession.currentUserId
+            if (userId != null) {
+                val currentUser = userDao.getUserById(userId)
+                if (currentUser != null) {
+                    val state = _uiState.value
+                    val updatedUser = currentUser.copy(
+                        name = state.name,
+                        phoneNumber = state.phone,
+                        email = state.email,
+                        passwordHash = if (state.newPassword.isNotBlank()) state.newPassword else currentUser.passwordHash
+                    )
+                    userDao.updateUser(updatedUser)
+                }
+            }
 
             _uiState.update {
                 it.copy(
@@ -82,7 +105,7 @@ class ProfileViewModel : ViewModel() {
                     newPassword = ""
                 )
             }
-
         }
     }
 }
+

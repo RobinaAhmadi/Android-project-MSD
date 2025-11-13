@@ -1,9 +1,10 @@
 package com.example.android_project_msd.login
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android_project_msd.auth.MockAuthRepository
-import kotlinx.coroutines.delay
+import com.example.android_project_msd.data.AppDatabase
+import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -15,7 +16,8 @@ data class LoginUiState(
     val error: String? = null
 )
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
+    private val userDao = AppDatabase.getDatabase(application).userDao()
     private val _ui = MutableStateFlow(LoginUiState())
     val ui = _ui.asStateFlow()
 
@@ -35,9 +37,12 @@ class LoginViewModel : ViewModel() {
 
         viewModelScope.launch {
             _ui.value = _ui.value.copy(isLoading = true, error = null)
-            delay(300)
-            val ok = MockAuthRepository.authenticate(email, password)
-            if (ok) {
+            val user = userDao.getUserByEmail(email)
+
+            if (user != null && user.passwordHash == password) {
+                // Gem brugerens session
+                UserSession.login(user.id, user.email)
+
                 _ui.value = _ui.value.copy(isLoading = false, error = null)
                 onSuccess()
             } else {
@@ -48,4 +53,3 @@ class LoginViewModel : ViewModel() {
         }
     }
 }
-

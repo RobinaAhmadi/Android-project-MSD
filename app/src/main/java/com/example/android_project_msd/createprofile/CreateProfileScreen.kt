@@ -200,43 +200,57 @@ fun CreateProfileRoute(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Modern gradient button (matching front page)
+                // Sign up button
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(30.dp))
+                        .height(52.dp)
+                        .clip(RoundedCornerShape(100))
                         .background(
                             Brush.horizontalGradient(
-                                listOf(Color(0xFF261863), Color(0xFFD975BB))
+                                listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                             )
                         )
                         .clickable(enabled = ui.canSubmit) {
-                            vm.submit(onSuccess = onDone, onError = {})
+                            vm.submit(
+                                onSuccess = onDone,
+                                onError = { /* Her kan du vise en fejlbesked */ }
+                            )
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("SIGN UP", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        "SIGN UP",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
 
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(16.dp))
+
                 Text(
                     "Cancel",
-                    color = Color(0xFF9E9E9E),
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .clickable { onDone() }
-                        .padding(6.dp)
+                        .fillMaxWidth()
+                        .clickable { onDone() },
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    Text("Already have an account? ", color = Color(0xFF8E8E93))
+                Spacer(Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Already have an account? ")
                     Text(
                         "Sign In",
-                        color = Color(0xFFD975BB),
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { onDone() }
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { /* Naviger til Sign In */ }
                     )
                 }
             }
