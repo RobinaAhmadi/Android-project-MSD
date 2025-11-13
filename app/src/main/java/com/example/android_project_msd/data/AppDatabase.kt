@@ -11,20 +11,20 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
 
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
+    companion object { // static in java
+        @Volatile // ensures visibility of changes to INSTANCE across threads
+        private var INSTANCE: AppDatabase? = null //singleton: one database instance
 
         fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
+            return INSTANCE ?: synchronized(this) { // if db instance not null return, else run code after ?: synchronized block to ensure only one thread can create db instance
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "user_database"
-                ).fallbackToDestructiveMigration()
+                ).fallbackToDestructiveMigration() // delete data if version changes
                  .build()
-                INSTANCE = instance
-                instance
+                INSTANCE = instance // save instance
+                instance // return instance
             }
         }
     }
