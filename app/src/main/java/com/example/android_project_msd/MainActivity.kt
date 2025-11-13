@@ -24,8 +24,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Always start at the front page so the login/database flow shows first.
         val prefs = UserPrefs(this)
-        val startDestination = if (prefs.isLoggedIn()) Routes.Home else Routes.FrontPage
+        val startDestination = Routes.FrontPage
 
         setContent {
             val navController = rememberNavController()
