@@ -214,7 +214,16 @@ fun GroupDetailRoute(
                             Spacer(Modifier.height(12.dp))
                         }
                         items(ui.settlements) { settlement ->
-                            SettlementCard(settlement = settlement)
+
+                            val isYouCreditor = settlement.toPerson == "You"
+                            SettlementCard(
+                                settlement = settlement,
+                                showReminder = isYouCreditor,
+                                onReminderClick = {
+                                    vm.sendReminderForSettlement(settlement)
+                                }
+                            )
+
                             Spacer(Modifier.height(8.dp))
                         }
                         item { Spacer(Modifier.height(22.dp))}
@@ -298,7 +307,7 @@ fun GroupDetailRoute(
     if (showRecordPaymentDialog) {
         RecordPaymentDialog(
             members = ui.members,
-            onDismiss = { showAddMemberDialog = false },
+            onDismiss = { showRecordPaymentDialog = false },
             onRecord = { from, to, amount ->
                 vm.recordPayment(from, to, amount)
                 showRecordPaymentDialog = false
@@ -308,7 +317,11 @@ fun GroupDetailRoute(
 }
 
 @Composable
-fun SettlementCard(settlement: com.example.android_project_msd.groups.data.Settlement) {
+fun SettlementCard(
+    settlement: com.example.android_project_msd.groups.data.Settlement,
+    showReminder: Boolean = false,
+    onReminderClick: () -> Unit = {}
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -339,6 +352,7 @@ fun SettlementCard(settlement: com.example.android_project_msd.groups.data.Settl
                     color = Color(0xFF757575)
                 )
             }
+
             Text(
                 "${settlement.amount} DKK",
                 style = MaterialTheme.typography.titleMedium.copy(
@@ -346,6 +360,18 @@ fun SettlementCard(settlement: com.example.android_project_msd.groups.data.Settl
                     color = Color(0xFFF57C00)
                 )
             )
+
+            //Notification reminder button
+            if (showReminder) {
+                Spacer(Modifier.width(8.dp))
+                TextButton(onClick = onReminderClick) {
+                    Text(
+                        "Remind",
+                        color = Color(0xFFF57C00),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
         }
     }
 }
