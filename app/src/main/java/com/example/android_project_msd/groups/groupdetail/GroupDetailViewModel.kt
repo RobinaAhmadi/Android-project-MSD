@@ -9,6 +9,7 @@ import com.example.android_project_msd.groups.data.GroupDetailsStore
 import com.example.android_project_msd.groups.data.DebtCalculator
 import com.example.android_project_msd.groups.data.Expense
 import com.example.android_project_msd.groups.data.Settlement
+import com.example.android_project_msd.notifications.NotificationCenter
 
 data class GroupMember(
     val id: String,
@@ -79,6 +80,17 @@ class GroupDetailViewModel : ViewModel() {
 
         _ui.value = _ui.value.copy(expenses = currentExpenses)
         recalcDebts()
+
+        //Notification
+        val group = _ui.value.group
+        NotificationCenter.notifyExpenseAdded(
+            groupId = group?.id,
+            groupName = group?.name,
+            description = description,
+            amount = amount,
+            paidBy = paidBy,
+            splitAmong = splitAmong
+        )
     }
 
     fun addMember(name: String, email: String) {
@@ -117,6 +129,17 @@ class GroupDetailViewModel : ViewModel() {
         list.add(0, payment)
         _ui.value = _ui.value.copy(expenses = list)
         recalcDebts()
+
+        //Notification
+        val group = _ui.value.group
+        NotificationCenter.notifyPaymentRecorded(
+            groupId = group?.id,
+            groupName = group?.name,
+            from = fromName,
+            to = toName,
+            amount = amount
+        )
+
     }
 
     // Debt calculation main function
@@ -166,5 +189,20 @@ class GroupDetailViewModel : ViewModel() {
         val now = System.currentTimeMillis()
         val today = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
         return today.format(java.util.Date(now))
+    }
+
+    //Notification reminder of settlement
+    fun sendReminderForSettlement(settlement: Settlement) {
+        val group = _ui.value.group ?: return
+
+        if (settlement.toPerson != currentUserName) return
+
+        NotificationCenter.sendReminder(
+            groupId = group.id,
+            groupName = group.name,
+            from = currentUserName,
+            to = settlement.fromPerson,
+            amount = settlement.amount
+        )
     }
 }

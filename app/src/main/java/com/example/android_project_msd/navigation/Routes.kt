@@ -12,4 +12,7 @@ object Routes {
     const val GroupDetailArg = "groupId"
     const val GroupDetail = "group/{$GroupDetailArg}"
     fun groupDetail(id: String) = "group/$id"
+
+    // Debug-route for notification (temporary)
+    const val NotificationsDebug = "notifications_debug"
 }

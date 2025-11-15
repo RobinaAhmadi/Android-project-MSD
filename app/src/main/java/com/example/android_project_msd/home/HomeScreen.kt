@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// 🎨 Evenly farver
 private val GradientStart = Color(0xFFB971A3)
 private val GradientEnd = Color(0xFFA03E82)
 private val BgStart = Color(0xFF131B63)
@@ -28,6 +28,7 @@ fun HomeScreen(
     onProfile: () -> Unit,
     onCreateGroup: () -> Unit,
     onMyGroups: () -> Unit,
+    onNotificationsDebug: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -36,6 +37,7 @@ fun HomeScreen(
             .background(Brush.verticalGradient(listOf(BgStart, BgEnd)))
             .padding(20.dp)
     ) {
+        // Profil-knap (venstre)
         IconButton(
             onClick = onProfile,
             modifier = Modifier
@@ -51,6 +53,23 @@ fun HomeScreen(
             )
         }
 
+        // Notifikations-bell (højre)
+        IconButton(
+            onClick = onNotificationsDebug,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.15f))
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Notifications,
+                contentDescription = "Notifications",
+                tint = Color.White
+            )
+        }
+
+        // Midterknapper
         Column(
             modifier = Modifier
                 .align(Alignment.Center)

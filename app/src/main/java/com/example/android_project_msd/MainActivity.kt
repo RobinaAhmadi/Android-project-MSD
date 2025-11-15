@@ -17,6 +17,7 @@ import com.example.android_project_msd.groups.grouplist.GroupsRoute
 import com.example.android_project_msd.home.HomeScreen
 import com.example.android_project_msd.login.LoginScreen
 import com.example.android_project_msd.navigation.Routes
+import com.example.android_project_msd.notifications.NotificationDebugScreen
 import com.example.android_project_msd.profile.ProfileScreen
 import com.example.android_project_msd.utils.UserPrefs
 
@@ -71,7 +72,8 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             onProfile = { navController.navigate(Routes.Profile) },
                             onCreateGroup = { navController.navigate(Routes.CreateGroup) },
-                            onMyGroups = { navController.navigate(Routes.Groups) }
+                            onMyGroups = { navController.navigate(Routes.Groups) },
+                            onNotificationsDebug = { navController.navigate(Routes.NotificationsDebug) }
                         )
                     }
 
@@ -104,6 +106,11 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Routes.Groups)
                             },
                             onCancel = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Routes.NotificationsDebug) {
+                        NotificationDebugScreen(
+                            onBack = { navController.popBackStack() }
                         )
                     }
                 }
