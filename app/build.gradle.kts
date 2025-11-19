@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
-    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -50,7 +50,6 @@ dependencies {
 
     //Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))
-    implementation(libs.androidx.room.common.jvm)
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.01"))
 
     implementation("androidx.activity:activity-compose:1.9.2")
@@ -64,11 +63,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
-    // Room
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.messaging)
 
     //Test dependencies
     testImplementation(libs.junit)

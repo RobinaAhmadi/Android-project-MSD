@@ -64,6 +64,9 @@ class MainActivity : ComponentActivity() {
                                     popUpTo(Routes.FrontPage) { inclusive = true }
                                     launchSingleTop = true
                                 }
+                            },
+                            onCancel = {
+                                navController.popBackStack()
                             }
                         )
                     }

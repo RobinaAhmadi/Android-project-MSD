@@ -1,18 +1,12 @@
 package com.example.android_project_msd.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "users")
 data class User(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val name: String,
-    val email: String,
-    val phoneNumber: String,
-    val passwordHash: String,
-    val cardHolderName: String,
-    val cardNumber: String,
-    val expiryDate: String,
-    val cvv: String
+    val id: String = "", //string in firebase
+    val name: String = "",
+    val email: String = "",
+    val phoneNumber: String = "",
+    val cardHolderName: String = "",
+    val cardNumber: String = "",
+    val expiryDate: String = "",
+    val cvv: String = ""
 )

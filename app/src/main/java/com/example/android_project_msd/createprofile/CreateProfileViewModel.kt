@@ -3,8 +3,7 @@ package com.example.android_project_msd.createprofile
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android_project_msd.data.AppDatabase
-import com.example.android_project_msd.data.User
+import com.example.android_project_msd.data.UserRepository
 import com.example.android_project_msd.data.UserSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,18 +19,19 @@ data class CreateProfileUiState(
     val cardNumber: String = "",
     val expiry: String = "",
     val cvv: String = "",
-    val showPassword: Boolean = false
+    val showPassword: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: String? = null
 ) {
     val isEmailValid: Boolean get() = email.contains("@")
-    val isPasswordValid: Boolean get() = password.length >= 1
-    val isExpiryValid: Boolean get() = expiry.length >= 1
-    val isCvvValid: Boolean get() = cvv.length in 3..4
+    val isPasswordValid: Boolean get() = password.length >= 6
+
     val canSubmit: Boolean
-        get() = username.isNotBlank() && isEmailValid && isPasswordValid && phone.isNotBlank() && cardHolder.isNotBlank() && cardNumber.isNotBlank() && expiry.isNotBlank() && cvv.isNotBlank()
+        get() = username.isNotBlank() && isEmailValid && isPasswordValid && phone.replace(" ", "").replace("+", "").isNotBlank() && cardHolder.isNotBlank() && cardNumber.replace(" ", "").isNotBlank() && expiry.isNotBlank() && cvv.isNotBlank()
 }
 
 class CreateProfileViewModel(application: Application) : AndroidViewModel(application) {
-    private val userDao = AppDatabase.getDatabase(application).userDao()
+    private val userRepository = UserRepository()
     private val _ui = MutableStateFlow(CreateProfileUiState())
     val ui = _ui.asStateFlow()
 
@@ -46,34 +46,59 @@ class CreateProfileViewModel(application: Application) : AndroidViewModel(applic
     fun submit(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val u = _ui.value
         if (!u.canSubmit) {
-            onError("Please fill all required fields correctly.")
+            val msg = "Please fill all required fields correctly."
+            _ui.value = _ui.value.copy(error = msg)
+            onError(msg)
+            return
+        }
+
+        if (u.password.length < 6) {
+            val msg = "Password must be at least 6 characters"
+            _ui.value = _ui.value.copy(error = msg)
+            onError(msg)
             return
         }
 
         viewModelScope.launch {
-            val existingUser = userDao.getUserByEmail(u.email)
-            if (existingUser != null) {
-                onError("An account with this email already exists.")
-            } else {
-                val newUser = User(
+            _ui.value = _ui.value.copy(isLoading = true, error = null)
+            try {
+                val trimmedEmail = u.email.trim()
+
+
+                // Create user in Firebase
+                val result = userRepository.createUser(
+                    email = trimmedEmail,
+                    password = u.password,
                     name = u.username,
-                    email = u.email,
-                    phoneNumber = u.countryCode + u.phone,
-                    passwordHash = u.password, // Husk at hashe dette i en rigtig app!
+                    phoneNumber = u.countryCode + u.phone.replace(" ", ""),
                     cardHolderName = u.cardHolder,
-                    cardNumber = u.cardNumber,
+                    cardNumber = u.cardNumber.replace(" ", ""),
                     expiryDate = u.expiry,
                     cvv = u.cvv
                 )
-                userDao.insert(newUser)
 
-                // Hent den nyoprettede bruger for at få ID'et
-                val createdUser = userDao.getUserByEmail(u.email)
-                if (createdUser != null) {
-                    UserSession.login(createdUser.id, createdUser.email)
-                }
-
-                onSuccess()
+                result.fold(
+                    onSuccess = { user ->
+                        UserSession.login(user.id, user.email)
+                        _ui.value = _ui.value.copy(isLoading = false, error = null)
+                        onSuccess()
+                    },
+                    onFailure = { error ->
+                        val msg = when {
+                            error.message?.contains("email address is already in use") == true ->
+                                "An account with this email already exists."
+                            error.message?.contains("password") == true ->
+                                "Password must be at least 6 characters."
+                            else -> "Error creating account: ${error.message}"
+                        }
+                        _ui.value = _ui.value.copy(isLoading = false, error = msg)
+                        onError(msg)
+                    }
+                )
+            } catch (e: Exception) {
+                val msg = "Error creating account: ${e.message}"
+                _ui.value = _ui.value.copy(isLoading = false, error = msg)
+                onError(msg)
             }
         }
     }

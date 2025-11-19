@@ -228,19 +228,52 @@ fun CreateGroupFullRoute(
                         .height(56.dp)
                         .clip(RoundedCornerShape(28.dp))
                         .background(
-                            Brush.horizontalGradient(
-                                listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
-                            )
+                            if (ui.canCreate) {
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                                )
+                            } else {
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFF163A96).copy(alpha = 0.5f), Color(0xFF0B1A3A).copy(alpha = 0.5f))
+                                )
+                            }
                         )
                         .clickable(enabled = ui.canCreate) {
-                            vm.createGroup(onSuccess = onDone)
+                            vm.createGroup(
+                                onSuccess = { groupId ->
+                                    onDone()
+                                },
+                                onError = { error ->
+                                    // Error is shown in UI via ui.error
+                                }
+                            )
                         },
                     contentAlignment = Alignment.Center
                 ) {
+                    if (ui.isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = androidx.compose.ui.Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            "CREATE GROUP",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // Error message
+                if (ui.error != null) {
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        "CREATE GROUP",
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+                        ui.error!!,
+                        color = Color(0xFFFF3B30),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 14.sp
                     )
                 }
 
@@ -262,8 +295,8 @@ fun CreateGroupFullRoute(
     if (ui.showAddMemberDialog) {
         AddMemberToGroupDialog(
             onDismiss = { vm.hideAddMemberDialog() },
-            onAdd = { name, email ->
-                vm.addMember(name, email)
+            onAdd = { email ->
+                vm.addMember(email)
                 vm.hideAddMemberDialog()
             }
         )
@@ -406,9 +439,8 @@ fun CurrencyChip(
 @Composable
 fun AddMemberToGroupDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, String) -> Unit
+    onAdd: (String) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -423,15 +455,12 @@ fun AddMemberToGroupDialog(
         },
         text = {
             Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    placeholder = { Text("John Doe") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                Text(
+                    "Enter the email address of the person you want to add to this group.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF757575)
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -444,8 +473,8 @@ fun AddMemberToGroupDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onAdd(name, email) },
-                enabled = name.isNotBlank() && email.isNotBlank()
+                onClick = { onAdd(email) },
+                enabled = email.isNotBlank() && email.contains("@")
             ) {
                 Text("ADD")
             }

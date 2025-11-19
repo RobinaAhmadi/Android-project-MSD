@@ -1,10 +1,10 @@
 package com.example.android_project_msd.data
 
 object UserSession {
-    var currentUserId: Int? = null
+    var currentUserId: String? = null
     var currentUserEmail: String? = null
 
-    fun login(userId: Int, email: String) {
+    fun login(userId: String, email: String) {
         currentUserId = userId
         currentUserEmail = email
     }

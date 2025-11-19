@@ -37,7 +37,8 @@ import androidx.compose.material3.LocalTextStyle
 @Composable
 fun CreateProfileRoute(
     vm: CreateProfileViewModel = viewModel(),
-    onDone: () -> Unit = {}
+    onDone: () -> Unit = {},
+    onCancel: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
     val scroll = rememberScrollState()
@@ -207,23 +208,49 @@ fun CreateProfileRoute(
                         .height(52.dp)
                         .clip(RoundedCornerShape(100))
                         .background(
-                            Brush.horizontalGradient(
-                                listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
-                            )
+                            if (ui.canSubmit && !ui.isLoading) {
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
+                                )
+                            } else {
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFF9C27B0).copy(alpha = 0.5f), Color(0xFFE91E63).copy(alpha = 0.5f))
+                                )
+                            }
                         )
-                        .clickable(enabled = ui.canSubmit) {
+                        .clickable(enabled = ui.canSubmit && !ui.isLoading) {
                             vm.submit(
                                 onSuccess = onDone,
-                                onError = { /* Her kan du vise en fejlbesked */ }
+                                onError = { /* Fejlen vises i UI via ui.error */ }
                             )
                         },
                     contentAlignment = Alignment.Center
                 ) {
+                    if (ui.isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            "SIGN UP",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+
+                // Error message
+                if (ui.error != null) {
+                    Spacer(Modifier.height(12.dp))
                     Text(
-                        "SIGN UP",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        ui.error!!,
+                        color = Color(0xFFD32F2F),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 14.sp
                     )
                 }
 
@@ -233,7 +260,7 @@ fun CreateProfileRoute(
                     "Cancel",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onDone() },
+                        .clickable { onCancel() },
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -250,7 +277,7 @@ fun CreateProfileRoute(
                         "Sign In",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { /* Naviger til Sign In */ }
+                        modifier = Modifier.clickable { onCancel() }
                     )
                 }
             }
