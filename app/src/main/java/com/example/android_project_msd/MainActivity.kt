@@ -83,7 +83,8 @@ class MainActivity : ComponentActivity() {
                     composable(Routes.Groups) {
                         GroupsRoute(
                             onBack = { navController.popBackStack() },
-                            onOpenGroup = { id -> navController.navigate(Routes.groupDetail(id)) }
+                            onOpenGroup = { id -> navController.navigate(Routes.groupDetail(id)) },
+                            onCreateGroup = { navController.navigate(Routes.CreateGroup) }
                         )
                     }
 

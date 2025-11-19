@@ -46,6 +46,11 @@ class GroupDetailViewModel : ViewModel() {
 
     fun loadGroup(groupId: String) {
         currentGroupId = groupId
+        refreshGroup()
+    }
+
+    fun refreshGroup() {
+        val groupId = currentGroupId ?: return
 
         viewModelScope.launch {
             Log.d("GroupDetailVM", "Loading group: $groupId")

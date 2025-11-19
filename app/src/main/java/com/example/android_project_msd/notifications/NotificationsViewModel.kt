@@ -34,13 +34,12 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
 
     private fun testFirebase() {
         viewModelScope.launch {
-            Log.d("NotificationsVM", "🧪 Running Firebase test...")
             notificationRepository.testFirebaseConnection().fold(
                 onSuccess = { message ->
-                    Log.d("NotificationsVM", "✅ Firebase test SUCCESS: $message")
+                    Log.d("NotificationsVM", " Firebase test SUCCESS: $message")
                 },
                 onFailure = { error ->
-                    Log.e("NotificationsVM", "❌ Firebase test FAILED: ${error.message}", error)
+                    Log.e("NotificationsVM", "Firebase test FAILED: ${error.message}", error)
                 }
             )
         }
@@ -54,7 +53,6 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
             _error.value = "No user logged in"
             return
         }
-
         Log.d("NotificationsVM", "Loading invitations for user: $userId")
 
         viewModelScope.launch {
@@ -124,7 +122,7 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
             result.fold(
                 onSuccess = {
                     Log.d("NotificationsVM", "Invitation declined successfully")
-                    // Invitation will be removed from list via real-time listener
+
                 },
                 onFailure = { error ->
                     Log.e("NotificationsVM", "Error declining invitation: ${error.message}")

@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.android_project_msd.groups.groupdetail.GroupDetailActivity
 
 @Composable
 fun CreateGroupFullRoute(

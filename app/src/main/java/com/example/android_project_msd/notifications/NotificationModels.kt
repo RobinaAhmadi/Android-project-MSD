@@ -3,8 +3,7 @@ package com.example.android_project_msd.notifications
 enum class NotificationType {
     EXPENSE_ADDED,
     PAYMENT_RECORDED,
-    REMINDER,
-    GROUP_CREATED
+    REMINDER
 }
 
 data class AppNotification(

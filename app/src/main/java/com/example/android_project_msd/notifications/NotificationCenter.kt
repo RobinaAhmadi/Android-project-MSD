@@ -1,12 +1,10 @@
 package com.example.android_project_msd.notifications
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
 object NotificationCenter {
     private val _notifications = MutableStateFlow<List<AppNotification>>(emptyList())
-    val notifications = _notifications.asStateFlow()
 
     private fun push(notification: AppNotification) {
         _notifications.value = listOf(notification) + _notifications.value
