@@ -15,4 +15,6 @@
 local.properties
 .idea/
 Invalidate
-Invalidate
+
+# Firebase
+google-services.json
