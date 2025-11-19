@@ -35,9 +35,6 @@ fun NotificationDebugScreen(
     val invitations by viewModel.invitations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadInvitations()
-    }
 
     Box(
         modifier = modifier

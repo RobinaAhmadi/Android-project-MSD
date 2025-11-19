@@ -1,9 +1,14 @@
 package com.example.android_project_msd.groups.groupdetail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.android_project_msd.data.NotificationRepository
+import com.example.android_project_msd.data.UserSession
 import com.example.android_project_msd.groups.grouplist.Group
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import com.example.android_project_msd.groups.data.GroupsRepository
 import com.example.android_project_msd.groups.data.GroupDetailsStore
 import com.example.android_project_msd.groups.data.DebtCalculator
@@ -28,11 +33,14 @@ data class GroupDetailUiState(
 )
 
 class GroupDetailViewModel : ViewModel() {
+    private val notificationRepository = NotificationRepository()
     private val _ui = MutableStateFlow(GroupDetailUiState())
     val ui = _ui.asStateFlow()
     private val currentUserName = "You"
+    private var currentGroupId: String? = null
 
     fun loadGroup(groupId: String) {
+        currentGroupId = groupId
         val repoGroup = GroupsRepository.groups.value.firstOrNull { it.id == groupId }
         val savedMembers = GroupDetailsStore.getMembers(groupId)
 
@@ -93,22 +101,44 @@ class GroupDetailViewModel : ViewModel() {
         )
     }
 
-    fun addMember(name: String, email: String) {
-        val newMember = GroupMember(
-            id = System.currentTimeMillis().toString(),
-            name = name,
-            email = email,
-            balance = 0.0
-        )
+    fun addMember(email: String) {
+        val trimmedEmail = email.trim()
+        val groupId = currentGroupId ?: return
+        val group = _ui.value.group ?: return
 
-        val currentMembers = _ui.value.members.toMutableList()
-        currentMembers.add(newMember)
+        // Check if member already exists
+        if (_ui.value.members.any { it.email.equals(trimmedEmail, ignoreCase = true) }) {
+            Log.w("GroupDetailVM", "Member with email $trimmedEmail already exists")
+            return
+        }
 
-        _ui.value = _ui.value.copy(
-            members = currentMembers,
-            group = _ui.value.group?.copy(memberCount = currentMembers.size)
-        )
-        recalcDebts()
+        val ownerId = UserSession.currentUserId
+        if (ownerId == null) {
+            Log.w("GroupDetailVM", "No user logged in")
+            return
+        }
+
+        // Send invitation instead of adding directly
+        viewModelScope.launch {
+            Log.d("GroupDetailVM", "Sending invitation to $trimmedEmail for group ${group.name}")
+
+            notificationRepository.createGroupInvitation(
+                fromUserId = ownerId,
+                toEmail = trimmedEmail,
+                groupId = groupId,
+                groupName = group.name,
+                groupDescription = group.description
+            ).fold(
+                onSuccess = { invitation ->
+                    Log.d("GroupDetailVM", "Invitation sent successfully to $trimmedEmail")
+                    // Note: Member will be added when they accept the invitation
+                    // We don't add them to the local list here
+                },
+                onFailure = { error ->
+                    Log.e("GroupDetailVM", "Failed to send invitation to $trimmedEmail: ${error.message}", error)
+                }
+            )
+        }
     }
 
     // Records a payment made between two members

@@ -60,16 +60,36 @@ class UserRepository {
      */
     suspend fun signIn(email: String, password: String): Result<User> {
         return try {
+            Log.d("UserRepository", "Signing in user: $email")
             val authResult = auth.signInWithEmailAndPassword(email, password).await()
             val userId = authResult.user?.uid ?: throw Exception("User not found")
+            val userEmail = authResult.user?.email ?: email
 
-            val user = getUserById(userId)
-            if (user != null) {
-                Result.success(user)
-            } else {
-                Result.failure(Exception("User data not found"))
+            Log.d("UserRepository", "User authenticated, ID: $userId")
+
+            var user = getUserById(userId)
+            if (user == null) {
+                Log.w("UserRepository", "User document not found in Firestore, creating it now...")
+
+                // Create user document if it doesn't exist (legacy auth-only users)
+                user = User(
+                    id = userId,
+                    name = userEmail.substringBefore("@"), // Use email prefix as name
+                    email = userEmail,
+                    phoneNumber = "",
+                    cardHolderName = "",
+                    cardNumber = "",
+                    expiryDate = "",
+                    cvv = ""
+                )
+
+                usersCollection.document(userId).set(user).await()
+                Log.d("UserRepository", "✅ User document created in Firestore for legacy user")
             }
+
+            Result.success(user)
         } catch (e: Exception) {
+            Log.e("UserRepository", "Error signing in: ${e.message}", e)
             Result.failure(e)
         }
     }

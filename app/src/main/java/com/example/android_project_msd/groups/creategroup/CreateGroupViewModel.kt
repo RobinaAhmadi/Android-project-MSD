@@ -100,11 +100,11 @@ class CreateGroupFullViewModel : ViewModel() {
                     onSuccess = { group ->
                         Log.d("CreateGroupVM", "Group created successfully: ${group.id}")
 
-                        // Send invitations to members instead of adding them directly
-                        if (_ui.value.members.isNotEmpty()) {
-                            Log.d("CreateGroupVM", "Sending ${_ui.value.members.size} invitations")
+                        // Send invitations to members - AWAIT before calling onSuccess
+                        viewModelScope.launch {
+                            if (_ui.value.members.isNotEmpty()) {
+                                Log.d("CreateGroupVM", "Sending ${_ui.value.members.size} invitations")
 
-                            viewModelScope.launch {
                                 for (member in _ui.value.members) {
                                     Log.d("CreateGroupVM", "Sending invitation to ${member.email}")
 
@@ -123,13 +123,14 @@ class CreateGroupFullViewModel : ViewModel() {
                                         }
                                     )
                                 }
+                                Log.d("CreateGroupVM", "All invitations processed")
+                            } else {
+                                Log.d("CreateGroupVM", "No members to invite")
                             }
-                        } else {
-                            Log.d("CreateGroupVM", "No members to invite")
-                        }
 
-                        _ui.value = _ui.value.copy(isLoading = false, error = null)
-                        onSuccess(group.id)
+                            _ui.value = _ui.value.copy(isLoading = false, error = null)
+                            onSuccess(group.id)
+                        }
                     },
                     onFailure = { error ->
                         val msg = "Error creating group: ${error.message}"

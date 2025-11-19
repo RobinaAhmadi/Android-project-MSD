@@ -18,11 +18,33 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
     private val _invitations = MutableStateFlow<List<GroupInvitation>>(emptyList())
     val invitations = _invitations.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true) // Start as loading
     val isLoading = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
+
+    init {
+        // Auto-load on creation
+        loadInvitations()
+
+        // Test Firebase connection
+        testFirebase()
+    }
+
+    private fun testFirebase() {
+        viewModelScope.launch {
+            Log.d("NotificationsVM", "🧪 Running Firebase test...")
+            notificationRepository.testFirebaseConnection().fold(
+                onSuccess = { message ->
+                    Log.d("NotificationsVM", "✅ Firebase test SUCCESS: $message")
+                },
+                onFailure = { error ->
+                    Log.e("NotificationsVM", "❌ Firebase test FAILED: ${error.message}", error)
+                }
+            )
+        }
+    }
 
     fun loadInvitations() {
         val userId = UserSession.currentUserId

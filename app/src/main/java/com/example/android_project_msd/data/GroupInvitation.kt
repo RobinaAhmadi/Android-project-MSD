@@ -23,13 +23,5 @@ data class GroupInvitation(
     val message: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val respondedAt: Timestamp? = null
-) {
-    fun getStatus(): InvitationStatus {
-        return try {
-            InvitationStatus.valueOf(status)
-        } catch (e: Exception) {
-            InvitationStatus.PENDING
-        }
-    }
-}
+)
 

@@ -16,6 +16,29 @@ class NotificationRepository {
     private val groupsCollection = firestore.collection("groups")
 
     /**
+     * TEST FUNCTION - Verify Firebase connection
+     */
+    suspend fun testFirebaseConnection(): Result<String> {
+        return try {
+            Log.d("NotificationRepo", "🧪 Testing Firebase connection...")
+
+            val testDoc = notificationsCollection.document("test_doc")
+            val testData = mapOf(
+                "test" to "Hello Firebase!",
+                "timestamp" to Timestamp.now()
+            )
+
+            testDoc.set(testData).await()
+
+            Log.d("NotificationRepo", "✅ Test document written successfully!")
+            Result.success("Firebase connection OK")
+        } catch (e: Exception) {
+            Log.e("NotificationRepo", "❌ Test failed: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Create a group invitation notification
      */
     suspend fun createGroupInvitation(
@@ -26,18 +49,23 @@ class NotificationRepository {
         groupDescription: String
     ): Result<GroupInvitation> {
         return try {
-            Log.d("NotificationRepo", "Creating invitation from $fromUserId to $toEmail for group $groupId")
+            Log.d("NotificationRepo", "🚀 STEP 1: Creating invitation from $fromUserId to $toEmail for group $groupId")
 
             // Get sender info
+            Log.d("NotificationRepo", "🚀 STEP 2: Fetching sender info for userId: $fromUserId")
             val sender = usersCollection.document(fromUserId).get().await()
                 .toObject(User::class.java)
                 ?: throw Exception("Sender not found")
+            Log.d("NotificationRepo", "✅ STEP 2 SUCCESS: Sender found: ${sender.name}")
 
             // Find recipient by email
+            Log.d("NotificationRepo", "🚀 STEP 3: Searching for recipient with email: $toEmail")
             val recipientQuery = usersCollection
                 .whereEqualTo("email", toEmail.trim())
                 .get()
                 .await()
+
+            Log.d("NotificationRepo", "Query returned ${recipientQuery.documents.size} documents")
 
             if (recipientQuery.isEmpty) {
                 throw Exception("No user found with email: $toEmail")
@@ -45,9 +73,13 @@ class NotificationRepository {
 
             val recipient = recipientQuery.documents.first().toObject(User::class.java)
                 ?: throw Exception("Failed to parse recipient data")
+            Log.d("NotificationRepo", "✅ STEP 3 SUCCESS: Recipient found: ${recipient.name} (ID: ${recipient.id})")
 
             // Create invitation
+            Log.d("NotificationRepo", "🚀 STEP 4: Creating invitation document reference")
             val invitationRef = notificationsCollection.document()
+            Log.d("NotificationRepo", "Document reference created with ID: ${invitationRef.id}")
+
             val invitation = GroupInvitation(
                 id = invitationRef.id,
                 type = "GROUP_INVITATION",
@@ -64,12 +96,20 @@ class NotificationRepository {
                 createdAt = Timestamp.now()
             )
 
+            Log.d("NotificationRepo", "🚀 STEP 5: Writing invitation to Firestore...")
+            Log.d("NotificationRepo", "Path: notifications/${invitation.id}")
+            Log.d("NotificationRepo", "Data: toUserId=${invitation.toUserId}, status=${invitation.status}")
+
             invitationRef.set(invitation).await()
-            Log.d("NotificationRepo", "Invitation created successfully: ${invitation.id}")
+
+            Log.d("NotificationRepo", "✅✅✅ STEP 5 SUCCESS: Invitation written to Firestore!")
+            Log.d("NotificationRepo", "✅ Complete path: notifications/${invitation.id}")
 
             Result.success(invitation)
         } catch (e: Exception) {
-            Log.e("NotificationRepo", "Error creating invitation: ${e.message}", e)
+            Log.e("NotificationRepo", "❌❌❌ ERROR creating invitation: ${e.message}", e)
+            Log.e("NotificationRepo", "❌ Exception type: ${e.javaClass.simpleName}")
+            Log.e("NotificationRepo", "❌ Stack trace: ${e.stackTraceToString()}")
             Result.failure(e)
         }
     }
@@ -83,18 +123,38 @@ class NotificationRepository {
         val listener = notificationsCollection
             .whereEqualTo("toUserId", userId)
             .whereEqualTo("status", InvitationStatus.PENDING.name)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e("NotificationRepo", "Error listening to invitations: ${error.message}", error)
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
 
-                val invitations = snapshot?.documents?.mapNotNull {
-                    it.toObject(GroupInvitation::class.java)
-                } ?: emptyList()
+                if (snapshot == null) {
+                    Log.w("NotificationRepo", "Snapshot is null")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
 
-                Log.d("NotificationRepo", "Received ${invitations.size} invitations")
+                Log.d("NotificationRepo", "Snapshot received with ${snapshot.documents.size} documents")
+
+                val invitations = snapshot.documents.mapNotNull { doc ->
+                    Log.d("NotificationRepo", "Processing document ${doc.id}: ${doc.data}")
+                    try {
+                        val invitation = doc.toObject(GroupInvitation::class.java)
+                        if (invitation != null) {
+                            Log.d("NotificationRepo", "Parsed invitation: fromUser=${invitation.fromUserName}, toUser=${invitation.toUserId}, status=${invitation.status}")
+                        } else {
+                            Log.w("NotificationRepo", "Failed to parse invitation from doc ${doc.id}")
+                        }
+                        invitation
+                    } catch (e: Exception) {
+                        Log.e("NotificationRepo", "Error parsing invitation doc ${doc.id}: ${e.message}", e)
+                        null
+                    }
+                }
+
+                Log.d("NotificationRepo", "Received ${invitations.size} invitations for user $userId")
                 trySend(invitations)
             }
 

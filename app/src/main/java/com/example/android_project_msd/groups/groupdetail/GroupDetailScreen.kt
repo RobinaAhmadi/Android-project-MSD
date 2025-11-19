@@ -297,8 +297,8 @@ fun GroupDetailRoute(
     if (showAddMemberDialog) {
         AddMemberDialog(
             onDismiss = { showAddMemberDialog = false },
-            onAdd = { name, email ->
-                vm.addMember(name, email)
+            onAdd = { email ->
+                vm.addMember(email)
                 showAddMemberDialog = false
             }
         )
@@ -680,9 +680,8 @@ fun AddExpenseDialog(
 @Composable
 fun AddMemberDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, String) -> Unit
+    onAdd: (String) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -697,15 +696,12 @@ fun AddMemberDialog(
         },
         text = {
             Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    placeholder = { Text("John Doe") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                Text(
+                    "Enter the email address of the person you want to add to this group.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF757575)
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -718,8 +714,8 @@ fun AddMemberDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onAdd(name, email) },
-                enabled = name.isNotBlank() && email.isNotBlank()
+                onClick = { onAdd(email) },
+                enabled = email.isNotBlank() && email.contains("@")
             ) {
                 Text("ADD")
             }
