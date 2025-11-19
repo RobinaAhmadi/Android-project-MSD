@@ -3,14 +3,14 @@ package com.example.android_project_msd.groups.groupdetail
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android_project_msd.data.GroupRepository
 import com.example.android_project_msd.data.NotificationRepository
+import com.example.android_project_msd.data.UserRepository
 import com.example.android_project_msd.data.UserSession
 import com.example.android_project_msd.groups.grouplist.Group
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.example.android_project_msd.groups.data.GroupsRepository
-import com.example.android_project_msd.groups.data.GroupDetailsStore
 import com.example.android_project_msd.groups.data.DebtCalculator
 import com.example.android_project_msd.groups.data.Expense
 import com.example.android_project_msd.groups.data.Settlement
@@ -34,43 +34,81 @@ data class GroupDetailUiState(
 
 class GroupDetailViewModel : ViewModel() {
     private val notificationRepository = NotificationRepository()
+    private val groupRepository = GroupRepository()
+    private val userRepository = UserRepository()
     private val _ui = MutableStateFlow(GroupDetailUiState())
     val ui = _ui.asStateFlow()
-    private val currentUserName = "You"
     private var currentGroupId: String? = null
+
+    // Get current user's display name from members list (will be "You")
+    private val currentUserName: String
+        get() = _ui.value.members.find { it.id == UserSession.currentUserId }?.name ?: "You"
 
     fun loadGroup(groupId: String) {
         currentGroupId = groupId
-        val repoGroup = GroupsRepository.groups.value.firstOrNull { it.id == groupId }
-        val savedMembers = GroupDetailsStore.getMembers(groupId)
 
-        if (repoGroup != null) {
-            val members = listOf(
-                GroupMember(id = "you", name = currentUserName, email = "you@email.com", balance = 0.0)
-            ) + savedMembers.mapIndexed { idx, m ->
-                GroupMember(id = "m$idx", name = m.name, email = m.email, balance = 0.0)
+        viewModelScope.launch {
+            Log.d("GroupDetailVM", "Loading group: $groupId")
+
+            // Get group from Firebase
+            val firebaseGroup = groupRepository.getGroupById(groupId)
+            if (firebaseGroup == null) {
+                Log.w("GroupDetailVM", "Group not found in Firebase")
+                _ui.value = GroupDetailUiState(
+                    group = null,
+                    members = emptyList(),
+                    expenses = emptyList(),
+                    userBalance = 0.0,
+                    settlements = emptyList(),
+                    isDebtsSettled = true
+                )
+                return@launch
             }
 
+            Log.d("GroupDetailVM", "Group found: ${firebaseGroup.name}, ${firebaseGroup.members.size} members")
+
+            // Convert Firebase Group to UI Group
+            val uiGroup = Group(
+                id = firebaseGroup.id,
+                name = firebaseGroup.name,
+                description = firebaseGroup.description,
+                memberCount = firebaseGroup.members.size,
+                balance = 0.0
+            )
+
+            // Load member details from users collection
+            val members = mutableListOf<GroupMember>()
+            val currentUserId = UserSession.currentUserId
+
+            for ((index, memberId) in firebaseGroup.members.withIndex()) {
+                val user = userRepository.getUserById(memberId)
+                if (user != null) {
+                    val isCurrentUser = memberId == currentUserId
+                    members.add(
+                        GroupMember(
+                            id = memberId,
+                            name = if (isCurrentUser) "You" else user.name,
+                            email = user.email,
+                            balance = 0.0
+                        )
+                    )
+                    Log.d("GroupDetailVM", "Member ${index + 1}: ${user.name} (${user.email})")
+                } else {
+                    Log.w("GroupDetailVM", "User not found for memberId: $memberId")
+                }
+            }
+
+            Log.d("GroupDetailVM", "Loaded ${members.size} members")
+
             _ui.value = GroupDetailUiState(
-                group = repoGroup.copy(memberCount = members.size),
+                group = uiGroup,
                 members = members,
                 expenses = emptyList(),
                 userBalance = 0.0,
                 settlements = emptyList(),
                 isDebtsSettled = true
             )
-            return
         }
-
-        // If group not found, show empty state
-        _ui.value = GroupDetailUiState(
-            group = null,
-            members = emptyList(),
-            expenses = emptyList(),
-            userBalance = 0.0,
-            settlements = emptyList(),
-            isDebtsSettled = true
-        )
     }
 
     fun addExpense(description: String, amount: Double, paidBy: String, splitAmong: List<String>) {
@@ -129,7 +167,7 @@ class GroupDetailViewModel : ViewModel() {
                 groupName = group.name,
                 groupDescription = group.description
             ).fold(
-                onSuccess = { invitation ->
+                onSuccess = { _ ->
                     Log.d("GroupDetailVM", "Invitation sent successfully to $trimmedEmail")
                     // Note: Member will be added when they accept the invitation
                     // We don't add them to the local list here
