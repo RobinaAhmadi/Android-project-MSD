@@ -42,8 +42,8 @@ fun GroupsRoute(
                 .fillMaxWidth()
                 .height(200.dp)
                 .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF112A66), Color(0xFF0B1B3D))
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF131B63), Color(0xFF481162))
                     )
                 )
         )
@@ -142,7 +142,7 @@ fun GroupsRoute(
                             .clip(RoundedCornerShape(28.dp))
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                                    listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                                 )
                             )
                             .clickable { onCreateGroup() },
@@ -193,7 +193,7 @@ fun GroupCard(
                     .clip(CircleShape)
                     .background(
                         Brush.horizontalGradient(
-                            listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                            listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                         )
                     ),
                 contentAlignment = Alignment.Center

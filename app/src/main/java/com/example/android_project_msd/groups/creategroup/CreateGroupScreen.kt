@@ -40,8 +40,8 @@ fun CreateGroupFullRoute(
                 .fillMaxWidth()
                 .height(260.dp)
                 .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF112A66), Color(0xFF0B1B3D))
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF131B63), Color(0xFF481162))
                     )
                 )
         )
@@ -229,11 +229,11 @@ fun CreateGroupFullRoute(
                         .background(
                             if (ui.canCreate) {
                                 Brush.horizontalGradient(
-                                    listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                                    listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                                 )
                             } else {
                                 Brush.horizontalGradient(
-                                    listOf(Color(0xFF163A96).copy(alpha = 0.5f), Color(0xFF0B1A3A).copy(alpha = 0.5f))
+                                    listOf(Color(0xFF9C27B0).copy(alpha = 0.5f), Color(0xFFE91E63).copy(alpha = 0.5f))
                                 )
                             }
                         )
@@ -373,7 +373,7 @@ fun MemberCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF163A96)),
+                    .background(Color(0xFF9C27B0)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -419,7 +419,7 @@ fun CurrencyChip(
             .clip(RoundedCornerShape(20.dp))
             .background(
                 if (isSelected) {
-                    Color(0xFF163A96)
+                    Color(0xFF9C27B0)
                 } else {
                     Color(0xFFF5F5F5)
                 }

@@ -9,9 +9,16 @@ object Routes {
     const val CreateProfile = "create_profile"
     const val Profile = "profile"
 
+    // Routing for group details screen
     const val GroupDetailArg = "groupId"
     const val GroupDetail = "group/{$GroupDetailArg}"
     fun groupDetail(id: String) = "group/$id"
+
+    //Routing for group settings screen
+    const val GroupSettingsArg = "groupId"
+    const val GroupSettings = "group/{$GroupSettingsArg}/settings"
+    fun groupSettings(id: String) = "group/$id/settings"
+
 
     // Debug-route for notification (temporary)
     const val NotificationsDebug = "notifications_debug"
