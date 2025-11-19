@@ -20,6 +20,7 @@ import com.example.android_project_msd.navigation.Routes
 import com.example.android_project_msd.notifications.NotificationDebugScreen
 import com.example.android_project_msd.profile.ProfileScreen
 import com.example.android_project_msd.utils.UserPrefs
+import com.example.android_project_msd.groups.groupsettings.GroupSettingsRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +98,21 @@ class MainActivity : ComponentActivity() {
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupDetailArg).orEmpty()
                         GroupDetailRoute(
                             groupId = groupId,
-                            onBack = { navController.popBackStack() }
+                            onBack = { navController.popBackStack() },
+                            onSettings = { navController.navigate(Routes.groupSettings(groupId)) }
+                        )
+                    }
+
+                    composable(
+                        route = Routes.GroupSettings,
+                        arguments = listOf(
+                            navArgument(Routes.GroupSettingsArg) { type = NavType.StringType}
+                        )
+                    ) {backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getString(Routes.GroupSettingsArg).orEmpty()
+                        GroupSettingsRoute(
+                            groupId = groupId,
+                            onBack = {navController.popBackStack() }
                         )
                     }
 

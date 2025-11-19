@@ -31,7 +31,8 @@ import com.example.android_project_msd.groups.data.Settlement
 fun GroupDetailRoute(
     groupId: String,
     vm: GroupDetailViewModel = viewModel(),
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onSettings: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
     var showAddExpenseDialog by remember { mutableStateOf(false) }
@@ -43,20 +44,18 @@ fun GroupDetailRoute(
     }
 
     Box(Modifier.fillMaxSize()) {
-        // Top gradient header
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(220.dp)
                 .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF112A66), Color(0xFF0B1B3D))
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF131B63), Color(0xFF481162))
                     )
                 )
         )
 
         Column(Modifier.fillMaxSize()) {
-            // Top bar
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -87,7 +86,7 @@ fun GroupDetailRoute(
                         )
                     }
                 }
-                IconButton(onClick = { /* TODO: Group settings */ }) {
+                IconButton(onClick = onSettings) {
                     Icon(
                         Icons.Default.MoreVert,
                         contentDescription = "Settings",
@@ -96,7 +95,7 @@ fun GroupDetailRoute(
                 }
             }
 
-            // Balance card in header
+            // Balance card
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -154,7 +153,6 @@ fun GroupDetailRoute(
 
             Spacer(Modifier.height(20.dp))
 
-            // White rounded content area
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(topStart = 44.dp, topEnd = 44.dp),
@@ -167,7 +165,7 @@ fun GroupDetailRoute(
                         .fillMaxSize()
                         .padding(20.dp)
                 ) {
-                    // Action buttons
+                    // Buttons with actions
                     item {
                         Row(
                             Modifier.fillMaxWidth(),
@@ -391,7 +389,7 @@ fun ActionButton(
             .background(
                 if (isPrimary) {
                     Brush.horizontalGradient(
-                        listOf(Color(0xFF163A96), Color(0xFF0B1A3A))
+                        listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                     )
                 } else {
                     Brush.horizontalGradient(
@@ -406,13 +404,13 @@ fun ActionButton(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (isPrimary) Color.White else Color(0xFF163A96),
+                tint = if (isPrimary) Color.White else Color(0xFF9C27B0),
                 modifier = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text,
-                color = if (isPrimary) Color.White else Color(0xFF163A96),
+                color = if (isPrimary) Color.White else Color(0xFF9C27B0),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp
             )
@@ -446,7 +444,7 @@ fun MemberItem(member: GroupMember) {
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF163A96)),
+                    .background(Color(0xFF9C27B0)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -512,7 +510,7 @@ fun ExpenseItem(expense: Expense) {
                     else
                         Icons.Default.Receipt,
                     contentDescription = null,
-                    tint = Color(0xFF163A96),
+                    tint = Color(0xFF9C27B0),
                     modifier = Modifier.size(24.dp)
                 )
             }
