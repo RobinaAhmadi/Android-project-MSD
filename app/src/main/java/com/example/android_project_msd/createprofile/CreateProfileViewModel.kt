@@ -15,19 +15,25 @@ data class CreateProfileUiState(
     val phone: String = "",
     val countryCode: String = "+45",
     val password: String = "",
-    val cardHolder: String = "",
-    val cardNumber: String = "",
-    val expiry: String = "",
-    val cvv: String = "",
     val showPassword: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
-    val isEmailValid: Boolean get() = email.contains("@")
+    // Better email validation
+    val isEmailValid: Boolean
+        get() = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+            .matches(email.trim())
+
     val isPasswordValid: Boolean get() = password.length >= 6
 
+    val hasPhoneDigits: Boolean
+        get() = phone.filter { it.isDigit() }.isNotEmpty()
+
     val canSubmit: Boolean
-        get() = username.isNotBlank() && isEmailValid && isPasswordValid && phone.replace(" ", "").replace("+", "").isNotBlank() && cardHolder.isNotBlank() && cardNumber.replace(" ", "").isNotBlank() && expiry.isNotBlank() && cvv.isNotBlank()
+        get() = username.isNotBlank() &&
+                isEmailValid &&
+                isPasswordValid &&
+                hasPhoneDigits
 }
 
 class CreateProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,36 +51,44 @@ class CreateProfileViewModel(application: Application) : AndroidViewModel(applic
 
     fun submit(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val u = _ui.value
-        if (!u.canSubmit) {
-            val msg = "Please fill all required fields correctly."
-            _ui.value = _ui.value.copy(error = msg)
-            onError(msg)
-            return
-        }
 
-        if (u.password.length < 6) {
-            val msg = "Password must be at least 6 characters"
-            _ui.value = _ui.value.copy(error = msg)
-            onError(msg)
-            return
+        when {
+            u.username.isBlank() -> {
+                val msg = "Please enter your name."
+                _ui.value = u.copy(error = msg)
+                onError(msg); return
+            }
+            !u.isEmailValid -> {
+                val msg = "Please enter a valid email address."
+                _ui.value = u.copy(error = msg)
+                onError(msg); return
+            }
+            !u.hasPhoneDigits -> {
+                val msg = "Please enter a valid phone number."
+                _ui.value = u.copy(error = msg)
+                onError(msg); return
+            }
+            !u.isPasswordValid -> {
+                val msg = "Password must be at least 6 characters."
+                _ui.value = u.copy(error = msg)
+                onError(msg); return
+            }
         }
 
         viewModelScope.launch {
-            _ui.value = _ui.value.copy(isLoading = true, error = null)
+            _ui.value = u.copy(isLoading = true, error = null)
             try {
                 val trimmedEmail = u.email.trim()
 
-
-                // Create user in Firebase
                 val result = userRepository.createUser(
                     email = trimmedEmail,
                     password = u.password,
                     name = u.username,
-                    phoneNumber = u.countryCode + u.phone.replace(" ", ""),
-                    cardHolderName = u.cardHolder,
-                    cardNumber = u.cardNumber.replace(" ", ""),
-                    expiryDate = u.expiry,
-                    cvv = u.cvv
+                    phoneNumber = u.countryCode + u.phone.filter { it.isDigit() },
+                    cardHolderName = "",
+                    cardNumber = "",
+                    expiryDate = "",
+                    cvv = ""
                 )
 
                 result.fold(
@@ -85,9 +99,9 @@ class CreateProfileViewModel(application: Application) : AndroidViewModel(applic
                     },
                     onFailure = { error ->
                         val msg = when {
-                            error.message?.contains("email address is already in use") == true ->
+                            error.message?.contains("email address is already in use", ignoreCase = true) == true ->
                                 "An account with this email already exists."
-                            error.message?.contains("password") == true ->
+                            error.message?.contains("password", ignoreCase = true) == true ->
                                 "Password must be at least 6 characters."
                             else -> "Error creating account: ${error.message}"
                         }

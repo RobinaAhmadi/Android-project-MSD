@@ -1,15 +1,27 @@
 package com.example.android_project_msd.login
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +36,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.android_project_msd.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.android_project_msd.R
 
 @Composable
 fun LoginScreen(
@@ -47,7 +59,8 @@ fun LoginScreen(
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background image
+
+
         Image(
             painter = painterResource(id = R.drawable.background_pic),
             contentDescription = null,
@@ -62,8 +75,8 @@ fun LoginScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF131B63).copy(alpha = 0.95f),
-                            Color(0xFF481162).copy(alpha = 0.95f)
+                            Color(0xFF1F1F7A).copy(alpha = 0.96f),
+                            Color(0xFF4C1E78).copy(alpha = 0.98f)
                         ),
                         startY = offset,
                         endY = offset + 800f
@@ -74,8 +87,8 @@ fun LoginScreen(
 
         Box(
             modifier = Modifier
-                .size(250.dp)
-                .offset(x = (-40).dp, y = (-100).dp)
+                .size(260.dp)
+                .offset(x = (-40).dp, y = (-90).dp)
                 .background(
                     Brush.radialGradient(
                         listOf(Color(0x33D975BB), Color.Transparent)
@@ -87,8 +100,8 @@ fun LoginScreen(
 
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .offset(x = 180.dp, y = 450.dp)
+                .size(220.dp)
+                .offset(x = 180.dp, y = 460.dp)
                 .background(
                     Brush.radialGradient(
                         listOf(Color(0x33D975BB), Color.Transparent)
@@ -98,84 +111,107 @@ fun LoginScreen(
                 .blur(90.dp)
         )
 
-        // Content column
+        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             AnimatedVisibility(visible = true) {
-                Text(
-                    "Welcome back",
-                    color = Color.White,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 28.dp)
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Welcome back",
+                        color = Color.White,
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        "Sign in to continue managing your groups",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 24.dp)
+                    )
+                }
             }
 
-            // Glass card container
+
             AnimatedVisibility(visible = true) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(26.dp))
-                        .background(Color.White.copy(alpha = 0.1f))
-                        .padding(20.dp)
+                        .background(Color.White.copy(alpha = 0.10f))
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
-                    // Email input
+                    // Email
                     OutlinedTextField(
                         value = ui.email,
                         onValueChange = { vm.updateEmail(it) },
                         label = { Text("Email") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Email, contentDescription = null, tint = Color(0xFFD975BB))
+                            Icon(
+                                Icons.Outlined.Email,
+                                contentDescription = null,
+                                tint = Color(0xFFD975BB)
+                            )
                         },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFD975BB),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.35f),
                             focusedLabelColor = Color(0xFFD975BB),
                             unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
                             cursorColor = Color(0xFFD975BB),
                             focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            unfocusedTextColor = Color.White,
+                            disabledBorderColor = Color.White.copy(alpha = 0.2f),
+                            disabledTextColor = Color.White.copy(alpha = 0.7f)
                         )
                     )
 
                     Spacer(Modifier.height(14.dp))
 
-                    // Password input
+                    // Password
                     OutlinedTextField(
                         value = ui.password,
                         onValueChange = { vm.updatePassword(it) },
                         label = { Text("Password") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Lock, contentDescription = null, tint = Color(0xFFD975BB))
+                            Icon(
+                                Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = Color(0xFFD975BB)
+                            )
                         },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFD975BB),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.35f),
                             focusedLabelColor = Color(0xFFD975BB),
                             unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
                             cursorColor = Color(0xFFD975BB),
                             focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            unfocusedTextColor = Color.White,
+                            disabledBorderColor = Color.White.copy(alpha = 0.2f),
+                            disabledTextColor = Color.White.copy(alpha = 0.7f)
                         )
                     )
 
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(22.dp))
 
-                    // Gradient button
+                    // Sign in button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -184,12 +220,14 @@ fun LoginScreen(
                             .background(
                                 Brush.horizontalGradient(
                                     listOf(
-                                        Color(0xFF261863),
-                                        Color(0xFFD975BB),
-                                        Color(0xFFEBA2C6)
+                                        Color(0xFF9C27B0),
+                                        Color(0xFFE91E63)
                                     )
                                 )
-                            ),
+                            )
+                            .clickable(enabled = !ui.isLoading) {
+                                vm.signIn(onSuccess = onSignIn, onError = {})
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         if (ui.isLoading) {
@@ -199,34 +237,30 @@ fun LoginScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            TextButton(
-                                onClick = {
-                                    vm.signIn(onSuccess = onSignIn, onError = {})
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    "Sign In",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                            Text(
+                                "Sign in",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
 
-                    if (ui.error != null) {
+                    // Error text
+                    ui.error?.let { error ->
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            ui.error!!,
+                            error,
                             color = Color(0xFFFFCDD2),
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = 13.sp
                         )
                     }
 
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(12.dp))
 
+                    // Create account
                     TextButton(
                         onClick = onCreateAccountClick,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
