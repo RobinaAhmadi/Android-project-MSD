@@ -3,7 +3,6 @@ package com.example.android_project_msd.groups.groupdetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -19,13 +18,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.android_project_msd.groups.groupdetail.GroupDetailViewModel
 import com.example.android_project_msd.groups.data.Expense
 import com.example.android_project_msd.groups.data.Settlement
+
+
+private val BgStart = Color(0xFF1F1F7A)
+private val BgEnd = Color(0xFF4C1E78)
+
+
 
 @Composable
 fun GroupDetailRoute(
@@ -35,58 +39,76 @@ fun GroupDetailRoute(
     onSettings: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
+
     var showAddExpenseDialog by remember { mutableStateOf(false) }
     var showAddMemberDialog by remember { mutableStateOf(false) }
-    var showRecordPaymentDialog by remember {mutableStateOf(false)}
+    var showRecordPaymentDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(groupId) {
-        vm.loadGroup(groupId)
-    }
+    LaunchedEffect(groupId) { vm.loadGroup(groupId) }
 
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF131B63), Color(0xFF481162))
-                    )
-                )
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(BgStart, BgEnd))
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
 
-        Column(Modifier.fillMaxSize()) {
+
+
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
+
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f))
+                ) {
                     Icon(
                         Icons.Default.ArrowBack,
                         contentDescription = "Back",
                         tint = Color.White
                     )
                 }
-                Spacer(Modifier.width(8.dp))
-                Column(Modifier.weight(1f)) {
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         ui.group?.name ?: "Group",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        color = Color.White
                     )
-                    if (ui.group?.description?.isNotEmpty() == true) {
+
+                    ui.group?.description?.takeIf { it.isNotBlank() }?.let {
                         Text(
-                            ui.group!!.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f)
+                            it,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp
                         )
                     }
                 }
-                IconButton(onClick = onSettings) {
+
+                IconButton(
+                    onClick = onSettings,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.12f))
+                ) {
                     Icon(
                         Icons.Default.MoreVert,
                         contentDescription = "Settings",
@@ -95,55 +117,62 @@ fun GroupDetailRoute(
                 }
             }
 
-            // Balance card
+
+
+            Spacer(Modifier.height(20.dp))
+
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                shape = RoundedCornerShape(20.dp),
-                tonalElevation = 4.dp,
-                color = Color.White
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White.copy(alpha = 0.12f)
             ) {
                 Column(
-                    Modifier.padding(20.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     Text(
-                        "Your Balance",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF757575)
-                    )
-                    Text(
-                        if (ui.userBalance >= 0) "+${ui.userBalance} DKK" else "${ui.userBalance} DKK",
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = if (ui.userBalance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336)
-                        )
-                    )
-                    Text(
-                        if (ui.userBalance >= 0) "You are owed" else "You owe",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF9E9E9E)
+                        "Your balance",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
                     )
 
-                    // For when all debts are settled
+                    val balance = ui.userBalance
+                    val positive = balance >= 0
+                    val color =
+                        if (positive) Color(0xFFB2FF59) else Color(0xFFFF8A80)
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = (if (positive) "+" else "") +
+                                String.format("%.2f DKK", balance),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 28.sp,
+                        color = color
+                    )
+
+                    Text(
+                        text = if (positive) "You are owed" else "You owe",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 13.sp
+                    )
+
                     if (ui.isDebtsSettled && ui.expenses.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(10.dp))
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = null,
                                 tint = Color(0xFF4CAF50),
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text(
                                 "All debts settled!",
                                 color = Color(0xFF4CAF50),
-                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -151,46 +180,52 @@ fun GroupDetailRoute(
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+
+
+            Spacer(Modifier.height(24.dp))
 
             Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(topStart = 44.dp, topEnd = 44.dp),
-                tonalElevation = 2.dp,
-                shadowElevation = 10.dp,
-                color = Color.White
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
             ) {
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(20.dp)
                 ) {
-                    // Buttons with actions
+
+
+
                     item {
                         Row(
-                            Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             ActionButton(
-                                text = "Add Expense",
+                                text = "Add expense",
                                 icon = Icons.Default.Add,
                                 onClick = { showAddExpenseDialog = true },
                                 modifier = Modifier.weight(1f),
                                 isPrimary = true
                             )
                             ActionButton(
-                                text = "Add Member",
+                                text = "Add member",
                                 icon = Icons.Default.PersonAdd,
                                 onClick = { showAddMemberDialog = true },
                                 modifier = Modifier.weight(1f),
                                 isPrimary = false
                             )
                         }
+
                         Spacer(Modifier.height(12.dp))
 
-                        //Record/add payment button
                         ActionButton(
-                            text = "Record Payment",
+                            text = "Record payment",
                             icon = Icons.Default.Payment,
                             onClick = { showRecordPaymentDialog = true },
                             modifier = Modifier.fillMaxWidth(),
@@ -200,20 +235,24 @@ fun GroupDetailRoute(
                         Spacer(Modifier.height(24.dp))
                     }
 
-                    //Section for settlement suggestion
-                    if(ui.settlements.isNotEmpty() && !ui.isDebtsSettled) {
+
+
+                    if (ui.settlements.isNotEmpty() && !ui.isDebtsSettled) {
+
                         item {
-                            SectionHeader("Settlement Suggestion")
+                            SectionHeader("Settlement suggestion")
                             Text(
-                                "Optimal way to settle ALL debts",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF757575)
+                                "Optimal way to settle all debts",
+                                color = Color(0xFF757575),
+                                fontSize = 13.sp
                             )
                             Spacer(Modifier.height(12.dp))
                         }
+
                         items(ui.settlements) { settlement ->
 
                             val isYouCreditor = settlement.toPerson == "You"
+
                             SettlementCard(
                                 settlement = settlement,
                                 showReminder = isYouCreditor,
@@ -222,12 +261,14 @@ fun GroupDetailRoute(
                                 }
                             )
 
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(10.dp))
                         }
-                        item { Spacer(Modifier.height(22.dp))}
+
+                        item { Spacer(Modifier.height(24.dp)) }
                     }
 
-                    // Members section
+
+
                     item {
                         SectionHeader("Members")
                         Spacer(Modifier.height(12.dp))
@@ -235,8 +276,10 @@ fun GroupDetailRoute(
 
                     items(ui.members) { member ->
                         MemberItem(member)
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(10.dp))
                     }
+
+
 
                     item {
                         Spacer(Modifier.height(24.dp))
@@ -244,11 +287,10 @@ fun GroupDetailRoute(
                         Spacer(Modifier.height(12.dp))
                     }
 
-                    // Expenses section
                     if (ui.expenses.isEmpty()) {
                         item {
                             Box(
-                                Modifier
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 32.dp),
                                 contentAlignment = Alignment.Center
@@ -257,14 +299,13 @@ fun GroupDetailRoute(
                                     Icon(
                                         Icons.Default.Receipt,
                                         contentDescription = null,
-                                        modifier = Modifier.size(60.dp),
-                                        tint = Color(0xFFE0E0E0)
+                                        tint = Color(0xFFE0E0E0),
+                                        modifier = Modifier.size(60.dp)
                                     )
                                     Spacer(Modifier.height(12.dp))
                                     Text(
                                         "No expenses yet",
-                                        color = Color(0xFF9E9E9E),
-                                        style = MaterialTheme.typography.bodyLarge
+                                        color = Color(0xFF9E9E9E)
                                     )
                                 }
                             }
@@ -272,15 +313,17 @@ fun GroupDetailRoute(
                     } else {
                         items(ui.expenses) { expense ->
                             ExpenseItem(expense)
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(10.dp))
                         }
                     }
+
+                    item { Spacer(Modifier.height(12.dp)) }
                 }
             }
         }
     }
 
-    // Dialogs
+
     if (showAddExpenseDialog) {
         AddExpenseDialog(
             members = ui.members,
@@ -314,15 +357,16 @@ fun GroupDetailRoute(
     }
 }
 
+
 @Composable
 fun SettlementCard(
-    settlement: com.example.android_project_msd.groups.data.Settlement,
-    showReminder: Boolean = false,
-    onReminderClick: () -> Unit = {}
+    settlement: Settlement,
+    showReminder: Boolean,
+    onReminderClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         tonalElevation = 1.dp,
         color = Color(0xFFFFF8E1)
     ) {
@@ -336,32 +380,33 @@ fun SettlementCard(
                 tint = Color(0xFFF57C00),
                 modifier = Modifier.size(24.dp)
             )
+
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
-                    "${settlement.fromPerson} owe ${settlement.toPerson}",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    "${settlement.fromPerson} owes ${settlement.toPerson}",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
                 Text(
                     "Suggested settlement",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF757575)
+                    color = Color(0xFF757575),
+                    fontSize = 13.sp
                 )
             }
 
             Text(
                 "${settlement.amount} DKK",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF57C00)
-                )
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFFF57C00)
             )
 
-            //Notification reminder button
             if (showReminder) {
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(6.dp))
                 TextButton(onClick = onReminderClick) {
                     Text(
                         "Remind",
@@ -375,57 +420,12 @@ fun SettlementCard(
 }
 
 @Composable
-fun ActionButton(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    isPrimary: Boolean = true
-) {
-    Box(
-        modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (isPrimary) {
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
-                    )
-                } else {
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFFF5F5F5), Color(0xFFEEEEEE))
-                    )
-                }
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = if (isPrimary) Color.White else Color(0xFF9C27B0),
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text,
-                color = if (isPrimary) Color.White else Color(0xFF9C27B0),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
-            )
-        }
-    }
-}
-
-@Composable
 fun SectionHeader(text: String) {
     Text(
         text,
-        style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1E1E1E)
-        )
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        color = Color(0xFF1E1E1E)
     )
 }
 
@@ -433,8 +433,9 @@ fun SectionHeader(text: String) {
 fun MemberItem(member: GroupMember) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 1.dp,
+        color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -444,42 +445,54 @@ fun MemberItem(member: GroupMember) {
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF9C27B0)),
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF5C6BC0), Color(0xFFAB47BC))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     member.name.first().uppercase(),
+                    fontSize = 18.sp,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontWeight = FontWeight.Bold
                 )
             }
+
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     member.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
                 Text(
                     member.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF757575)
+                    color = Color(0xFF757575),
+                    fontSize = 13.sp
                 )
             }
+
+            val pos = member.balance >= 0
+            val color =
+                if (pos) Color(0xFF4CAF50) else Color(0xFFF44336)
+
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    if (member.balance >= 0) "+${member.balance}" else "${member.balance}",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = if (member.balance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336)
-                    )
+                    (if (pos) "+" else "") +
+                            String.format("%.2f", member.balance),
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
                 Text(
                     "DKK",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9E9E9E)
+                    color = Color(0xFF9E9E9E),
+                    fontSize = 12.sp
                 )
             }
         }
@@ -490,13 +503,15 @@ fun MemberItem(member: GroupMember) {
 fun ExpenseItem(expense: Expense) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 1.dp,
+        color = Color.White
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -505,44 +520,95 @@ fun ExpenseItem(expense: Expense) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    if (expense.description.contains("Payment", ignoreCase = true))
+                    if (expense.description.contains("Payment", true))
                         Icons.Default.Payment
-                    else
-                        Icons.Default.Receipt,
+                    else Icons.Default.Receipt,
                     contentDescription = null,
                     tint = Color(0xFF9C27B0),
                     modifier = Modifier.size(24.dp)
                 )
             }
+
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     expense.description,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
                 Text(
                     "Paid by ${expense.paidBy}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF757575)
+                    color = Color(0xFF757575),
+                    fontSize = 13.sp
                 )
                 Text(
                     expense.date,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9E9E9E)
+                    color = Color(0xFF9E9E9E),
+                    fontSize = 12.sp
                 )
             }
+
             Text(
                 "${expense.amount} DKK",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E1E1E)
-                )
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
             )
         }
     }
 }
+
+
+@Composable
+fun ActionButton(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isPrimary: Boolean
+) {
+    Box(
+        modifier = modifier
+            .height(52.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                if (isPrimary)
+                    Brush.horizontalGradient(
+                        listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
+                    )
+                else
+                    Brush.horizontalGradient(
+                        listOf(Color(0xFFF5F5F5), Color(0xFFEEEEEE))
+                    )
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (isPrimary) Color.White else Color(0xFF9C27B0),
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(Modifier.width(8.dp))
+
+            Text(
+                text,
+                color = if (isPrimary) Color.White else Color(0xFF9C27B0),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -555,6 +621,7 @@ fun AddExpenseDialog(
     var amount by remember { mutableStateOf("") }
     var selectedPayer by remember { mutableStateOf(members.firstOrNull()?.name ?: "") }
     var expandedPayer by remember { mutableStateOf(false) }
+
     val selectedSplitMembers =
         remember { mutableStateListOf<String>().apply { addAll(members.map { it.name }) } }
 
@@ -562,22 +629,23 @@ fun AddExpenseDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Add Expense",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
+                "Add expense",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp
             )
         },
         text = {
+
             Column(
-                Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description") },
-                    placeholder = { Text("e.g., Dinner at restaurant") },
+                    placeholder = { Text("e.g. Dinner at restaurant") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -585,30 +653,34 @@ fun AddExpenseDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        amount = it.filter { char -> char.isDigit() || char == '.' }
+                        amount = it.filter { c -> c.isDigit() || c == '.' }
                     },
                     label = { Text("Amount (DKK)") },
-                    placeholder = { Text("0.00") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
 
-                // Paid by dropdown
+
+
                 ExposedDropdownMenuBox(
                     expanded = expandedPayer,
                     onExpandedChange = { expandedPayer = !expandedPayer }
                 ) {
+
                     OutlinedTextField(
                         value = selectedPayer,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Paid by") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPayer) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPayer)
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
                             .menuAnchor()
+                            .fillMaxWidth()
                     )
-                    ExposedDropdownMenu(
+
+                    DropdownMenu(
                         expanded = expandedPayer,
                         onDismissRequest = { expandedPayer = false }
                     ) {
@@ -626,24 +698,18 @@ fun AddExpenseDialog(
 
                 Text(
                     "Split among:",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    fontWeight = FontWeight.SemiBold
                 )
 
                 members.forEach { member ->
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = selectedSplitMembers.contains(member.name),
-                            onCheckedChange = { checked ->
-                                if (checked) {
-                                    selectedSplitMembers.add(member.name)
-                                } else {
-                                    selectedSplitMembers.remove(member.name)
-                                }
+                            onCheckedChange = { check ->
+                                if (check) selectedSplitMembers.add(member.name)
+                                else selectedSplitMembers.remove(member.name)
                             }
                         )
                         Text(member.name)
@@ -655,22 +721,15 @@ fun AddExpenseDialog(
             TextButton(
                 onClick = {
                     val amountDouble = amount.toDoubleOrNull() ?: 0.0
-                    onAdd(
-                        description,
-                        amountDouble,
-                        selectedPayer,
-                        selectedSplitMembers.toList()
-                    )
+                    onAdd(description, amountDouble, selectedPayer, selectedSplitMembers)
                 },
-                enabled = description.isNotBlank() && amount.isNotBlank() && selectedSplitMembers.isNotEmpty()
+                enabled = description.isNotBlank() && amount.isNotBlank()
             ) {
                 Text("ADD")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL")
-            }
+            TextButton(onClick = onDismiss) { Text("CANCEL") }
         }
     )
 }
@@ -686,25 +745,26 @@ fun AddMemberDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Add Member",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
+                "Add member",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp
             )
         },
         text = {
+
             Column {
+
                 Text(
-                    "Enter the email address of the person you want to add to this group.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Enter email address of the member.",
                     color = Color(0xFF757575)
                 )
-                Spacer(Modifier.height(16.dp))
+
+                Spacer(Modifier.height(10.dp))
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
-                    placeholder = { Text("john@email.com") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -712,16 +772,14 @@ fun AddMemberDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onAdd(email) },
-                enabled = email.isNotBlank() && email.contains("@")
+                enabled = email.contains("@") && email.isNotBlank(),
+                onClick = { onAdd(email) }
             ) {
                 Text("ADD")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL")
-            }
+            TextButton(onClick = onDismiss) { Text("CANCEL") }
         }
     )
 }
@@ -733,9 +791,11 @@ fun RecordPaymentDialog(
     onDismiss: () -> Unit,
     onRecord: (String, String, Double) -> Unit
 ) {
-    var amount by remember { mutableStateOf("")}
-    var selectedFrom by remember { mutableStateOf(members.firstOrNull()?.name ?: "")}
+
+    var amount by remember { mutableStateOf("") }
+    var selectedFrom by remember { mutableStateOf(members.firstOrNull()?.name ?: "") }
     var selectedTo by remember { mutableStateOf(members.getOrNull(1)?.name ?: "") }
+
     var expandedFrom by remember { mutableStateOf(false) }
     var expandedTo by remember { mutableStateOf(false) }
 
@@ -743,39 +803,43 @@ fun RecordPaymentDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Record Payment",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
+                "Record payment",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp
             )
         },
         text = {
+
             Column(
-                Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 Text(
-                    "Record when someone pays their debt",
-                    style = MaterialTheme.typography.bodySmall,
+                    "Record when a member pays their debt.",
                     color = Color(0xFF757575)
                 )
 
-                // From dropdown
+
+
                 ExposedDropdownMenuBox(
                     expanded = expandedFrom,
                     onExpandedChange = { expandedFrom = !expandedFrom }
                 ) {
+
                     OutlinedTextField(
                         value = selectedFrom,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("From (payer)") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrom) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrom)
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
                             .menuAnchor()
+                            .fillMaxWidth()
                     )
-                    ExposedDropdownMenu(
+
+                    DropdownMenu(
                         expanded = expandedFrom,
                         onDismissRequest = { expandedFrom = false }
                     ) {
@@ -791,22 +855,26 @@ fun RecordPaymentDialog(
                     }
                 }
 
-                // To dropdown
+
                 ExposedDropdownMenuBox(
                     expanded = expandedTo,
                     onExpandedChange = { expandedTo = !expandedTo }
                 ) {
+
                     OutlinedTextField(
                         value = selectedTo,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("To (receiver)") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTo) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTo)
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
                             .menuAnchor()
+                            .fillMaxWidth()
                     )
-                    ExposedDropdownMenu(
+
+                    DropdownMenu(
                         expanded = expandedTo,
                         onDismissRequest = { expandedTo = false }
                     ) {
@@ -825,10 +893,9 @@ fun RecordPaymentDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        amount = it.filter { char -> char.isDigit() || char == '.' }
+                        amount = it.filter { c -> c.isDigit() || c == '.' }
                     },
                     label = { Text("Amount (DKK)") },
-                    placeholder = { Text("0.00") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -836,27 +903,23 @@ fun RecordPaymentDialog(
         },
         confirmButton = {
             TextButton(
+                enabled = selectedFrom != selectedTo && amount.isNotBlank(),
                 onClick = {
-                    val amountDouble = amount.toDoubleOrNull() ?: 0.0
-                    onRecord(selectedFrom, selectedTo, amountDouble)
-                },
-                enabled = amount.isNotBlank() && selectedFrom != selectedTo
-            ) {
-                Text("RECORD")
-            }
+                    val value = amount.toDoubleOrNull() ?: 0.0
+                    onRecord(selectedFrom, selectedTo, value)
+                }
+            ) { Text("RECORD") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CANCEL")
-            }
+            TextButton(onClick = onDismiss) { Text("CANCEL") }
         }
     )
 }
 
-@Preview(showBackground = true, heightDp = 800)
+@Preview(showBackground = true, heightDp = 900)
 @Composable
-fun GroupDetailPreview() {
+fun PreviewDetail() {
     MaterialTheme {
-        GroupDetailRoute(groupId = "1", onBack = {})
+        GroupDetailRoute(groupId = "1")
     }
 }
