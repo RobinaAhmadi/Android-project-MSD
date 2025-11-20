@@ -22,8 +22,6 @@ import androidx.compose.ui.unit.sp
 
 private val BgStart = Color(0xFF131B63)
 private val BgEnd = Color(0xFF481162)
-private val ButtonStart = Color(0xFFD975BB)
-private val ButtonEnd = Color(0xFFB858A1)
 
 @Composable
 fun HomeScreen(
@@ -33,6 +31,7 @@ fun HomeScreen(
     onNotificationsDebug: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -42,14 +41,14 @@ fun HomeScreen(
             .padding(20.dp)
     ) {
 
-        // Top icons
+
         IconButton(
             onClick = onProfile,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.18f))
+                .background(Color.White.copy(alpha = 0.15f))
         ) {
             Icon(
                 imageVector = Icons.Outlined.Person,
@@ -64,7 +63,7 @@ fun HomeScreen(
                 .align(Alignment.TopEnd)
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.18f))
+                .background(Color.White.copy(alpha = 0.15f))
         ) {
             Icon(
                 imageVector = Icons.Outlined.Notifications,
@@ -73,17 +72,18 @@ fun HomeScreen(
             )
         }
 
+
         Box(
             modifier = Modifier
-                .size(250.dp)
-                .offset(x = (-60).dp, y = 40.dp)
+                .size(260.dp)
+                .offset(x = (-80).dp, y = 80.dp)
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Color(0x55D975BB), Color.Transparent)
+                        listOf(Color(0x44D975BB), Color.Transparent)
                     ),
                     shape = CircleShape
                 )
-                .alpha(0.5f)
+                .alpha(0.45f)
         )
 
 
@@ -92,35 +92,39 @@ fun HomeScreen(
                 .align(Alignment.Center)
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(26.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
 
             Text(
                 text = "Evenly makes it easy",
-                fontSize = 26.sp,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
-                fontWeight = FontWeight.Bold
+                letterSpacing = 0.5.sp
             )
+
+            Spacer(Modifier.height(6.dp))
 
             Text(
-                text = "Create, join, and manage your groups",
-                fontSize = 15.sp,
-                color = Color.White.copy(alpha = 0.8f)
-
+                text = "Split, manage and stay updated.",
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.82f)
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(34.dp))
 
 
-            HomeButton(
+
+            GlassButton(
                 icon = Icons.Outlined.Group,
                 text = "Create Group",
                 onClick = onCreateGroup
             )
 
-            HomeButton(
+            Spacer(Modifier.height(20.dp))
+
+            GlassButton(
                 icon = Icons.Outlined.Group,
                 text = "My Groups",
                 onClick = onMyGroups
@@ -130,44 +134,41 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeButton(
+private fun GlassButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
     onClick: () -> Unit
 ) {
+
+    val glassColor = Color.White.copy(alpha = 0.13f)
+
     Button(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth(0.85f)
-            .height(65.dp),
-        shape = RoundedCornerShape(22.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
-        contentPadding = PaddingValues(0.dp)
+            .height(68.dp),
+        shape = RoundedCornerShape(26.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = glassColor),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.horizontalGradient(listOf(ButtonStart, ButtonEnd)),
-                    RoundedCornerShape(22.dp)
-                ),
-            contentAlignment = Alignment.Center
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = text,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 17.sp
-                )
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
