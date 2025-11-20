@@ -1,12 +1,12 @@
 package com.example.android_project_msd.notifications
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Group
@@ -24,8 +24,9 @@ import com.example.android_project_msd.data.GroupInvitation
 
 private val BgStart = Color(0xFF131B63)
 private val BgEnd = Color(0xFF481162)
-private val CardBackground = Color(0xFFF3EAF5)
+private val CardBackground = Color(0xFFF6F1FA)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationDebugScreen(
     onBack: () -> Unit,
@@ -35,79 +36,114 @@ fun NotificationDebugScreen(
     val invitations by viewModel.invitations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Notifications",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        },
+        containerColor = Color.Transparent
+    ) { padding ->
 
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(BgStart, BgEnd)))
+                .padding(padding)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+
+            Column {
+                Text(
+                    text = "Group Invitations",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Pending invitations",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.75f)
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                when {
+                    isLoading -> LoadingState()
+                    invitations.isEmpty() -> EmptyState()
+                    else -> InvitationList(
+                        invitations = invitations,
+                        viewModel = viewModel
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoadingState() {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(BgStart, BgEnd)))
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Column(Modifier.fillMaxSize()) {
-            TextButton(onClick = onBack) {
-                Text("Back", color = Color.White)
-            }
+        CircularProgressIndicator(color = Color.White)
+    }
+}
 
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = "Group Invitations",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+@Composable
+private fun EmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Filled.Group,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.4f),
+                modifier = Modifier.size(64.dp)
             )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Pending group invitations",
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodyMedium
-            )
-
             Spacer(Modifier.height(16.dp))
+            Text(
+                "No pending invitations",
+                color = Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
 
-            when {
-                isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
-                }
-                invitations.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Filled.Group,
-                                contentDescription = null,
-                                tint = Color.White.copy(alpha = 0.4f),
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Spacer(Modifier.height(16.dp))
-                            Text(
-                                "No pending invitations",
-                                color = Color.White.copy(alpha = 0.8f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(invitations) { invitation ->
-                            GroupInvitationCard(
-                                invitation = invitation,
-                                onAccept = { viewModel.acceptInvitation(invitation.id) },
-                                onDecline = { viewModel.declineInvitation(invitation.id) }
-                            )
-                        }
-                    }
-                }
-            }
+@Composable
+private fun InvitationList(
+    invitations: List<GroupInvitation>,
+    viewModel: NotificationsViewModel
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(invitations) { invitation ->
+            GroupInvitationCard(
+                invitation = invitation,
+                onAccept = { viewModel.acceptInvitation(invitation.id) },
+                onDecline = { viewModel.declineInvitation(invitation.id) }
+            )
         }
     }
 }
@@ -123,48 +159,44 @@ private fun GroupInvitationCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(18.dp)),
         color = CardBackground,
-        shadowElevation = 4.dp
+        shadowElevation = 6.dp
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Header with icon
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+
+            // Header row
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Filled.Group,
+                    Icons.Default.Group,
                     contentDescription = null,
-                    tint = Color(0xFF5C2B7F),
+                    tint = Color(0xFF6C3EA8),
                     modifier = Modifier.size(32.dp)
                 )
 
                 Spacer(Modifier.width(12.dp))
 
-                Column(Modifier.weight(1f)) {
+                Column {
                     Text(
-                        text = "Group Invitation",
+                        "Group Invitation",
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color(0xFF5C2B7F),
+                        color = Color(0xFF6C3EA8),
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = invitation.groupName,
+                        invitation.groupName,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2D1B3D)
+                        color = Color(0xFF1D0F2A),
+                        fontWeight = FontWeight.ExtraBold
                     )
                 }
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // Invitation message
+            // Message
             Text(
-                text = invitation.message,
+                invitation.message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF4A4A4A)
             )
@@ -172,30 +204,26 @@ private fun GroupInvitationCard(
             if (invitation.groupDescription.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = invitation.groupDescription,
+                    invitation.groupDescription,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF757575),
+                    color = Color(0xFF777777),
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                 )
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
 
-            // From user info
             Text(
-                text = "From: ${invitation.fromUserName} (${invitation.fromUserEmail})",
+                "From: ${invitation.fromUserName} (${invitation.fromUserEmail})",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF757575)
+                color = Color(0xFF777777)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // Action buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Decline button
+            // Accept / Decline buttons
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+
                 OutlinedButton(
                     onClick = {
                         isProcessing = true
@@ -204,20 +232,20 @@ private fun GroupInvitationCard(
                     modifier = Modifier.weight(1f),
                     enabled = !isProcessing,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFFE91E63)
+                        contentColor = Color(0xFFD7266B)
                     ),
-                    border = BorderStroke(1.dp, Color(0xFFE91E63))
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        width = 1.dp,
+                        brush = Brush.horizontalGradient(
+                            listOf(Color(0xFFD7266B), Color(0xFFB81A55))
+                        )
                     )
+                ) {
+                    Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Decline")
                 }
 
-                // Accept button
                 Button(
                     onClick = {
                         isProcessing = true
@@ -236,11 +264,7 @@ private fun GroupInvitationCard(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Icon(
-                            imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Accept")
                     }
@@ -249,4 +273,3 @@ private fun GroupInvitationCard(
         }
     }
 }
-
