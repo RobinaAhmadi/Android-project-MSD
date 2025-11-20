@@ -8,22 +8,36 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.ui.text.style.TextAlign
 
-import androidx.compose.ui.tooling.preview.Preview
+
+private val GroupsBgStart = Color(0xFF1F1F7A)
+private val GroupsBgEnd = Color(0xFF4C1E78)
 
 @Composable
 fun GroupsRoute(
@@ -32,111 +46,238 @@ fun GroupsRoute(
     onOpenGroup: (String) -> Unit = {},
     onCreateGroup: () -> Unit = {}
 ) {
-
     val ui by vm.ui.collectAsState()
 
-    Box(Modifier.fillMaxSize()) {
-        // Top gradient header
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF131B63), Color(0xFF481162))
-                    )
-                )
-        )
+    val totalBalance = ui.groups.sumOf { it.balance }
+    val youAreOwed = ui.groups.filter { it.balance > 0 }.sumOf { it.balance }
+    val youOwe = ui.groups.filter { it.balance < 0 }.sumOf { it.balance }
 
-        Column(Modifier.fillMaxSize()) {
-            // Top bar with back button and title
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(GroupsBgStart, GroupsBgEnd))
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())     // FIXED TOP SPACING
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+
+            // TOP BAR
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f))
+                ) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        imageVector = Icons.Outlined.ArrowBack,
                         contentDescription = "Back",
                         tint = Color.White
                     )
                 }
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "My Groups",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "My groups",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
+                    Text(
+                        text = "${ui.groups.size} active group${if (ui.groups.size == 1) "" else "s"}",
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontSize = 14.sp
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.Outlined.Group,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // White rounded content area
+            // OVERVIEW CARD
             Surface(
-                modifier = Modifier
-                    .fillMaxSize(),
-                shape = RoundedCornerShape(topStart = 44.dp, topEnd = 44.dp),
-                tonalElevation = 2.dp,
-                shadowElevation = 10.dp,
-                color = Color.White
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White.copy(alpha = 0.12f)
             ) {
                 Column(
-                    Modifier
+                    modifier = Modifier.padding(18.dp)
+                ) {
+                    Text(
+                        "Overview",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        // LEFT SIDE
+                        Column {
+                            Text(
+                                "Net balance",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 13.sp
+                            )
+                            Text(
+                                String.format("%.2f DKK", totalBalance),
+                                color = if (totalBalance >= 0) Color(0xFFB2FF59) else Color(0xFFFF8A80),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+
+                        // RIGHT SIDE
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "You’re owed",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 13.sp
+                            )
+                            Text(
+                                String.format("%.2f DKK", youAreOwed),
+                                color = Color(0xFFB2FF59),
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            Spacer(Modifier.height(6.dp))
+
+                            Text(
+                                "You owe",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 13.sp
+                            )
+                            Text(
+                                String.format("%.2f DKK", -youOwe),
+                                color = Color(0xFFFF8A80),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // BOTTOM SHEET (white rounded)
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+
+                Column(
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(20.dp)
                 ) {
-                    if (ui.groups.isEmpty()) {
-                        // Empty state
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    Icons.Default.Group,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(80.dp),
-                                    tint = Color(0xFFE0E0E0)
-                                )
-                                Spacer(Modifier.height(16.dp))
-                                Text(
-                                    "No groups yet",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = Color(0xFF757575)
-                                )
-                                Text(
-                                    "Create your first group to start splitting expenses",
-                                    color = Color(0xFF9E9E9E),
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Your groups",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF222222)
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            "${ui.groups.size}",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    when {
+                        ui.isLoading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF673AB7))
                             }
                         }
-                    } else {
-                        // Groups list
-                        LazyColumn(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(ui.groups) { group ->
-                                GroupCard(
-                                    group = group,
-                                    onClick = { onOpenGroup(group.id) }
-                                )
+
+                        ui.groups.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Group,
+                                        tint = Color.LightGray,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(70.dp)
+                                    )
+                                    Spacer(Modifier.height(12.dp))
+                                    Text(
+                                        "No groups yet",
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        "Create your first group to start sharing expenses.",
+                                        color = Color.Gray,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(horizontal = 32.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(ui.groups) { group ->
+                                    GroupCard(
+                                        group = group,
+                                        onClick = { onOpenGroup(group.id) }
+                                    )
+                                }
                             }
                         }
                     }
 
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(20.dp))
 
-                    // Create Group Button
+                    // CREATE BUTTON
                     Box(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(28.dp))
@@ -145,23 +286,46 @@ fun GroupsRoute(
                                     listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
                                 )
                             )
-                            .clickable { onCreateGroup() },
+                            .clickable(onClick = onCreateGroup),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                Icons.Default.Add,
+                                Icons.Outlined.Add,
                                 contentDescription = null,
                                 tint = Color.White
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "CREATE NEW GROUP",
+                                "Create new group",
                                 color = Color.White,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
+                }
+            }
+        }
+
+        // ERROR POPUP
+        ui.error?.let { error ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFB00020)
+                ) {
+                    Text(
+                        error,
+                        color = Color.White,
+                        modifier = Modifier.padding(14.dp),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -177,95 +341,96 @@ fun GroupCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 1.dp,
-        shadowElevation = 2.dp
+        shape = RoundedCornerShape(18.dp),
+        shadowElevation = 4.dp,
+        color = Color.White
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Group icon
+
+            // CIRCLE ICON
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(50.dp)
                     .clip(CircleShape)
                     .background(
-                        Brush.horizontalGradient(
-                            listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
+                        Brush.linearGradient(
+                            listOf(Color(0xFF5C6BC0), Color(0xFFAB47BC))
                         )
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Group,
+                    Icons.Outlined.Group,
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
+                    tint = Color.White
                 )
             }
 
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(14.dp))
 
-            Column(Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     group.name,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1E1E1E)
-                    )
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = Color(0xFF212121),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+
                 if (group.description.isNotEmpty()) {
                     Text(
                         group.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF757575),
-                        maxLines = 1
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                Spacer(Modifier.height(4.dp))
+
+                Spacer(Modifier.height(6.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Person,
+                        Icons.Outlined.Person,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = Color(0xFF9E9E9E)
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         "${group.memberCount} members",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF9E9E9E)
+                        color = Color.Gray,
+                        fontSize = 13.sp
                     )
                 }
             }
 
-            // Balance indicator
-            Column(horizontalAlignment = Alignment.End) {
+            Spacer(Modifier.width(10.dp))
+
+            val isPositive = group.balance >= 0
+            val balanceText = (if (isPositive) "+" else "") +
+                    String.format("%.2f DKK", group.balance)
+
+            val col = if (isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = col.copy(alpha = 0.12f)
+            ) {
                 Text(
-                    if (group.balance >= 0) "+${group.balance} DKK" else "${group.balance} DKK",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = if (group.balance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336)
-                    )
-                )
-                Text(
-                    if (group.balance >= 0) "You're owed" else "You owe",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF9E9E9E)
+                    balanceText,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    color = col,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
                 )
             }
         }
     }
 }
-
-// Preview for Android Studio
-@Preview(showBackground = true, heightDp = 800)
-@Composable
-fun GroupsScreenPreview() {
-    MaterialTheme {
-        GroupsRoute(onBack = {})
-    }
-}
-
