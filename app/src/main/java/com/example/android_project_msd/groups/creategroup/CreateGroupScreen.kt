@@ -9,8 +9,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,10 +33,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.tooling.preview.Preview
+
+// Same gradient as Home / Groups / GroupDetail
+private val BgStart = Color(0xFF1F1F7A)
+private val BgEnd = Color(0xFF4C1E78)
 
 @Composable
 fun CreateGroupFullRoute(
@@ -33,259 +52,281 @@ fun CreateGroupFullRoute(
     val ui by vm.ui.collectAsState()
     val scroll = rememberScrollState()
 
-    Box(Modifier.fillMaxSize()) {
-        // Top gradient
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(260.dp)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF131B63), Color(0xFF481162))
-                    )
-                )
-        )
-
-        // Title and group icon
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(260.dp)
-                .padding(horizontal = 20.dp, vertical = 28.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(BgStart, BgEnd))
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
+            // Top bar
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopStart),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onCancel) {
+                IconButton(
+                    onClick = onCancel,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f))
+                ) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
                         tint = Color.White
                     )
                 }
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Create New\nGroup",
-                    style = MaterialTheme.typography.headlineLarge.copy(
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        "Create group",
                         color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(92.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.95f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Group,
-                    contentDescription = null,
-                    tint = Color(0xFF1E1E1E),
-                    modifier = Modifier.fillMaxSize(0.6f)
-                )
-            }
-        }
-
-        // White rounded sheet
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 160.dp),
-            shape = RoundedCornerShape(topStart = 44.dp, topEnd = 44.dp),
-            tonalElevation = 2.dp,
-            shadowElevation = 10.dp,
-            color = Color.White
-        ) {
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scroll)
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 24.dp, bottom = 20.dp)
-            ) {
-                // Group Info Section
-                Text(
-                    "Group Information",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E1E1E)
-                    )
-                )
-                Spacer(Modifier.height(16.dp))
-
-                LineInput(
-                    label = "Group Name",
-                    value = ui.groupName,
-                    placeholder = "Weekend Trip, Apartment, etc.",
-                    onChange = { newValue -> vm.update { it.copy(groupName = newValue) } }
-                )
-
-                LineInput(
-                    label = "Description (Optional)",
-                    value = ui.description,
-                    placeholder = "What is this group for?",
-                    onChange = { newValue -> vm.update { it.copy(description = newValue) } }
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                // Members Section
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
                     Text(
-                        "Members",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1E1E1E)
-                        )
-                    )
-                    TextButton(onClick = { vm.showAddMemberDialog() }) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text("Add Member")
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                if (ui.members.isEmpty()) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Default.PersonAdd,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = Color(0xFFE0E0E0)
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                "No members added yet",
-                                color = Color(0xFF9E9E9E)
-                            )
-                        }
-                    }
-                } else {
-                    ui.members.forEach { member ->
-                        MemberCard(
-                            member = member,
-                            onRemove = { vm.removeMember(member.id) }
-                        )
-                        Spacer(Modifier.height(8.dp))
-                    }
-                }
-
-                Spacer(Modifier.height(24.dp))
-
-                // Currency Selection (Optional feature)
-                Text(
-                    "Currency",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1E1E1E)
-                    )
-                )
-                Spacer(Modifier.height(12.dp))
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    listOf("DKK", "EUR", "USD", "GBP").forEach { currency ->
-                        CurrencyChip(
-                            currency = currency,
-                            isSelected = ui.currency == currency,
-                            onClick = { vm.update { it.copy(currency = currency) } }
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(32.dp))
-
-                // CREATE BUTTON
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(
-                            if (ui.canCreate) {
-                                Brush.horizontalGradient(
-                                    listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
-                                )
-                            } else {
-                                Brush.horizontalGradient(
-                                    listOf(Color(0xFF9C27B0).copy(alpha = 0.5f), Color(0xFFE91E63).copy(alpha = 0.5f))
-                                )
-                            }
-                        )
-                        .clickable(enabled = ui.canCreate) {
-                            vm.createGroup(
-                                onSuccess = { groupId ->
-                                    onDone()
-                                },
-                                onError = { error ->
-                                    // Error is shown in UI via ui.error
-                                }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (ui.isLoading) {
-                        androidx.compose.material3.CircularProgressIndicator(
-                            modifier = androidx.compose.ui.Modifier.size(20.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            "CREATE GROUP",
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                // Error message
-                if (ui.error != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        ui.error!!,
-                        color = Color(0xFFFF3B30),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
+                        "Set up details and members",
+                        color = Color.White.copy(alpha = 0.8f),
                         fontSize = 14.sp
                     )
                 }
 
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    "Cancel",
-                    color = Color(0xFF8E8E93),
+                Box(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .clickable { onCancel() }
-                        .padding(6.dp)
-                )
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF5C6BC0), Color(0xFFAB47BC))
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Group,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(22.dp))
+
+            // White bottom sheet
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scroll)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                ) {
+                    // Group info
+                    Text(
+                        "Group information",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1E1E1E)
+                        )
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    LineInput(
+                        label = "Group name",
+                        value = ui.groupName,
+                        placeholder = "Weekend trip, Apartment, etc.",
+                        onChange = { newValue ->
+                            vm.update { it.copy(groupName = newValue) }
+                        }
+                    )
+
+                    LineInput(
+                        label = "Description (optional)",
+                        value = ui.description,
+                        placeholder = "What is this group for?",
+                        onChange = { newValue ->
+                            vm.update { it.copy(description = newValue) }
+                        }
+                    )
+
+                    Spacer(Modifier.height(20.dp))
+
+                    // Members
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Members",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E1E1E)
+                            )
+                        )
+                        TextButton(onClick = { vm.showAddMemberDialog() }) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("Add member")
+                        }
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    if (ui.members.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 18.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    Icons.Default.PersonAdd,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = Color(0xFFE0E0E0)
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    "No members added yet",
+                                    color = Color(0xFF9E9E9E),
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    } else {
+                        ui.members.forEach { member ->
+                            MemberCard(
+                                member = member,
+                                onRemove = { vm.removeMember(member.id) }
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(Modifier.height(22.dp))
+
+                    // Currency
+                    Text(
+                        "Currency",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1E1E1E)
+                        )
+                    )
+                    Spacer(Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("DKK", "EUR", "USD", "GBP").forEach { currency ->
+                            CurrencyChip(
+                                currency = currency,
+                                isSelected = ui.currency == currency,
+                                onClick = {
+                                    vm.update { it.copy(currency = currency) }
+                                }
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(28.dp))
+
+                    // Create button
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(28.dp))
+                            .background(
+                                Brush.horizontalGradient(
+                                    if (ui.canCreate) {
+                                        listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
+                                    } else {
+                                        listOf(
+                                            Color(0xFF9C27B0).copy(alpha = 0.5f),
+                                            Color(0xFFE91E63).copy(alpha = 0.5f)
+                                        )
+                                    }
+                                )
+                            )
+                            .clickable(enabled = ui.canCreate && !ui.isLoading) {
+                                vm.createGroup(
+                                    onSuccess = { _ ->
+                                        onDone()
+                                    },
+                                    onError = { _ ->
+                                        // ui.error already handled
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (ui.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                "Create group",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+
+                    // Error
+                    ui.error?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            it,
+                            color = Color(0xFFFF3B30),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // Cancel text
+                    Text(
+                        "Cancel",
+                        color = Color(0xFF8E8E93),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .clickable { onCancel() }
+                            .padding(6.dp),
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }
@@ -311,7 +352,7 @@ private fun LineInput(
 ) {
     Text(
         label,
-        style = MaterialTheme.typography.titleMedium.copy(
+        style = MaterialTheme.typography.titleSmall.copy(
             color = Color(0xFF111111),
             fontWeight = FontWeight.Medium
         )
@@ -339,7 +380,8 @@ private fun LineInput(
                 if (internal.isEmpty()) {
                     Text(
                         placeholder,
-                        color = Color(0xFFB3B3B3)
+                        color = Color(0xFFB3B3B3),
+                        fontSize = 14.sp
                     )
                 }
                 inner()
@@ -352,7 +394,7 @@ private fun LineInput(
         thickness = 1.dp,
         color = Color(0x1A000000)
     )
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(14.dp))
 }
 
 @Composable
@@ -362,8 +404,10 @@ fun MemberCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp,
+        color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -373,7 +417,11 @@ fun MemberCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF9C27B0)),
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF5C6BC0), Color(0xFFAB47BC))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -430,7 +478,8 @@ fun CurrencyChip(
         Text(
             currency,
             color = if (isSelected) Color.White else Color(0xFF757575),
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            fontSize = 14.sp
         )
     }
 }
@@ -446,7 +495,7 @@ fun AddMemberToGroupDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Add Member",
+                "Add member",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.SemiBold
                 )
@@ -455,7 +504,7 @@ fun AddMemberToGroupDialog(
         text = {
             Column {
                 Text(
-                    "Enter the email address of the person you want to add to this group.",
+                    "Enter the email of the person you want to add.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF757575)
                 )
