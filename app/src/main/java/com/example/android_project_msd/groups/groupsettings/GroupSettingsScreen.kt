@@ -8,8 +8,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+// Match app gradient
+private val BgStart = Color(0xFF1F1F7A)
+private val BgEnd = Color(0xFF4C1E78)
 
 @Composable
 fun GroupSettingsRoute(
@@ -36,168 +53,194 @@ fun GroupSettingsRoute(
         vm.loadGroup(groupId)
     }
 
-    Box(Modifier.fillMaxSize()) {
-        // Top gradient header
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF131B63), Color(0xFF481162))
-                    )
-                )
-        )
-
-        Column(Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(BgStart, BgEnd))
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
             // Top bar
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f))
+                ) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = Color.White
                     )
                 }
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Group Settings",
-                    style = MaterialTheme.typography.headlineMedium.copy(
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Group settings",
                         color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                )
+                    if (ui.group != null) {
+                        Text(
+                            text = ui.group!!.name,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
             }
 
-            Spacer(Modifier.height(60.dp))
+            Spacer(Modifier.height(20.dp))
 
-            // White rounded content area
+            // White rounded content sheet
             Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(topStart = 44.dp, topEnd = 44.dp),
-                tonalElevation = 2.dp,
-                shadowElevation = 10.dp,
-                color = Color.White
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
             ) {
-                if (ui.isLoading) {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                when {
+                    ui.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                } else if (ui.group == null) {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Group not found", color = Color(0xFF757575))
+
+                    ui.group == null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Group not found",
+                                color = Color(0xFF757575)
+                            )
+                        }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp)
-                    ) {
-                        // Group Info Section
-                        item {
-                            SectionHeader("Group Information")
-                            Spacer(Modifier.height(12.dp))
-                        }
 
-                        item {
-                            InfoCard(
-                                label = "Group Name",
-                                value = ui.group!!.name,
-                                onEdit = if (ui.isOwner) {
-                                    { showEditDialog = true }
-                                } else null
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-
-                        item {
-                            InfoCard(
-                                label = "Description",
-                                value = ui.group!!.description.ifEmpty { "No description" },
-                                onEdit = if (ui.isOwner) {
-                                    { showEditDialog = true }
-                                } else null
-                            )
-                            Spacer(Modifier.height(24.dp))
-                        }
-
-                        // Members Section
-                        item {
-                            SectionHeader("Members (${ui.members.size})")
-                            Spacer(Modifier.height(12.dp))
-                        }
-
-                        items(ui.members) { member ->
-                            MemberCard(
-                                member = member,
-                                isOwner = member.id == ui.group!!.ownerId,
-                                canRemove = ui.isOwner && member.id != ui.group!!.ownerId,
-                                onRemove = {
-                                    memberToRemove = member
-                                }
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-
-                        // Delete Group Section (only for owner)
-                        if (ui.isOwner) {
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 20.dp, vertical = 20.dp)
+                        ) {
+                            // Group info
                             item {
-                                Spacer(Modifier.height(32.dp))
-                                SectionHeader("Danger Zone")
+                                SectionHeader("Group information")
                                 Spacer(Modifier.height(12.dp))
                             }
 
                             item {
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable { showDeleteConfirmation = true },
-                                    color = Color(0xFFFFEBEE),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
+                                InfoCard(
+                                    label = "Group name",
+                                    value = ui.group!!.name,
+                                    onEdit = if (ui.isOwner) {
+                                        { showEditDialog = true }
+                                    } else null
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
+
+                            item {
+                                InfoCard(
+                                    label = "Description",
+                                    value = ui.group!!.description.ifEmpty { "No description" },
+                                    onEdit = if (ui.isOwner) {
+                                        { showEditDialog = true }
+                                    } else null
+                                )
+                                Spacer(Modifier.height(24.dp))
+                            }
+
+                            // Members
+                            item {
+                                SectionHeader("Members (${ui.members.size})")
+                                Spacer(Modifier.height(12.dp))
+                            }
+
+                            items(ui.members) { member ->
+                                MemberCard(
+                                    member = member,
+                                    isOwner = member.id == ui.group!!.ownerId,
+                                    canRemove = ui.isOwner && member.id != ui.group!!.ownerId,
+                                    onRemove = { memberToRemove = member }
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
+
+                            // Danger zone
+                            if (ui.isOwner) {
+                                item {
+                                    Spacer(Modifier.height(32.dp))
+                                    SectionHeader("Danger zone")
+                                    Spacer(Modifier.height(12.dp))
+                                }
+
+                                item {
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .clickable { showDeleteConfirmation = true },
+                                        color = Color(0xFFFFEBEE),
+                                        shape = RoundedCornerShape(14.dp),
+                                        shadowElevation = 2.dp
                                     ) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = null,
-                                            tint = Color(0xFFD32F2F)
-                                        )
-                                        Spacer(Modifier.width(12.dp))
-                                        Column(Modifier.weight(1f)) {
-                                            Text(
-                                                "Delete Group",
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = Color(0xFFD32F2F)
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Delete,
+                                                contentDescription = null,
+                                                tint = Color(0xFFD32F2F)
+                                            )
+                                            Spacer(Modifier.width(12.dp))
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    "Delete group",
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color(0xFFD32F2F)
+                                                    )
                                                 )
-                                            )
-                                            Text(
-                                                "This action cannot be undone",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = Color(0xFF757575)
-                                            )
+                                                Text(
+                                                    "This action cannot be undone.",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color(0xFF757575)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        item {
-                            Spacer(Modifier.height(40.dp))
+                            item {
+                                Spacer(Modifier.height(32.dp))
+                            }
                         }
                     }
                 }
@@ -246,19 +289,14 @@ fun GroupSettingsRoute(
         )
     }
 
-    // Show error if any
-    if (ui.error != null) {
-        LaunchedEffect(ui.error) {
-            // You could show a snackbar here
-        }
-    }
+
 }
 
 @Composable
 private fun SectionHeader(text: String) {
     Text(
-        text,
-        style = MaterialTheme.typography.titleLarge.copy(
+        text = text,
+        style = MaterialTheme.typography.titleMedium.copy(
             fontWeight = FontWeight.Bold,
             color = Color(0xFF1E1E1E)
         )
@@ -273,14 +311,18 @@ private fun InfoCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp,
+        color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     label,
                     style = MaterialTheme.typography.labelMedium,
@@ -297,7 +339,7 @@ private fun InfoCard(
             if (onEdit != null) {
                 IconButton(onClick = onEdit) {
                     Icon(
-                        Icons.Default.Edit,
+                        Icons.Filled.Edit,
                         contentDescription = "Edit",
                         tint = Color(0xFF163A96)
                     )
@@ -316,8 +358,10 @@ private fun MemberCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 1.dp,
+        shadowElevation = 2.dp,
+        color = Color.White
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -327,7 +371,11 @@ private fun MemberCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF163A96)),
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF5C6BC0), Color(0xFFAB47BC))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -338,7 +386,9 @@ private fun MemberCard(
                 )
             }
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         member.name,
@@ -371,7 +421,7 @@ private fun MemberCard(
             if (canRemove) {
                 IconButton(onClick = onRemove) {
                     Icon(
-                        Icons.Default.Close,
+                        Icons.Filled.Close,
                         contentDescription = "Remove member",
                         tint = Color(0xFFD32F2F)
                     )
@@ -395,7 +445,7 @@ private fun EditGroupDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Edit Group",
+                "Edit group",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.SemiBold
                 )
@@ -403,15 +453,15 @@ private fun EditGroupDialog(
         },
         text = {
             Column {
-                OutlinedTextField(
+                androidx.compose.material3.OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Group Name") },
+                    label = { Text("Group name") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                androidx.compose.material3.OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Description") },
@@ -446,13 +496,13 @@ private fun RemoveMemberDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                Icons.Default.Warning,
+                Icons.Filled.Warning,
                 contentDescription = null,
                 tint = Color(0xFFF57C00)
             )
         },
         title = {
-            Text("Remove Member?")
+            Text("Remove member?")
         },
         text = {
             Text("Are you sure you want to remove $memberName from this group?")
@@ -485,14 +535,14 @@ private fun DeleteGroupDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                Icons.Default.Delete,
+                Icons.Filled.Delete,
                 contentDescription = null,
                 tint = Color(0xFFD32F2F)
             )
         },
         title = {
             Text(
-                "Delete Group?",
+                "Delete group?",
                 color = Color(0xFFD32F2F)
             )
         },
@@ -513,6 +563,8 @@ private fun DeleteGroupDialog(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFD32F2F)
                 )
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(color = Color(0x1AD32F2F))
             }
         },
         confirmButton = {
