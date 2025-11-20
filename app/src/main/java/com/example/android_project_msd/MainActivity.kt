@@ -106,17 +106,20 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = Routes.GroupSettings,
                         arguments = listOf(
-                            navArgument(Routes.GroupSettingsArg) { type = NavType.StringType}
+                            navArgument(Routes.GroupSettingsArg) { type = NavType.StringType }
                         )
-                    ) {backStackEntry ->
+                    ) { backStackEntry ->
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupSettingsArg).orEmpty()
                         GroupSettingsRoute(
                             groupId = groupId,
-                            onBack = {navController.popBackStack() }
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
-                    composable(Routes.Profile) { ProfileScreen() }
+                    // navController to ProfileScreen
+                    composable(Routes.Profile) {
+                        ProfileScreen(navController = navController)
+                    }
 
                     composable(Routes.CreateGroup) {
                         CreateGroupFullRoute(
@@ -127,6 +130,7 @@ class MainActivity : ComponentActivity() {
                             onCancel = { navController.popBackStack() }
                         )
                     }
+
                     composable(Routes.NotificationsDebug) {
                         NotificationDebugScreen(
                             onBack = { navController.popBackStack() }

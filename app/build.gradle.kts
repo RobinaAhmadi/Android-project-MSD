@@ -38,17 +38,18 @@ android {
 }
 
 dependencies {
-    //Basic Android
+    // Basic Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.foundation)
+
     // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.8.2")
 
-    //Compose
+    // Compose BOM + base libs
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.01"))
 
@@ -59,18 +60,26 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // Lifecycle + ViewModel in Compose
+    // Lifecycle + ViewModel
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
-    // Firebase
+    // Firebase BOM
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+    // Firebase modules
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")   // *** REQUIRED FOR PROFILE PICS ***
+
+    // Optional Firebase modules you already used
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
 
-    //Test dependencies
+    // Coil (image loading for profile pictures)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
