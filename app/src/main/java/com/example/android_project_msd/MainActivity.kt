@@ -21,12 +21,14 @@ import com.example.android_project_msd.notifications.NotificationDebugScreen
 import com.example.android_project_msd.profile.ProfileScreen
 import com.example.android_project_msd.utils.UserPrefs
 import com.example.android_project_msd.groups.groupsettings.GroupSettingsRoute
+import com.example.android_project_msd.payment.PaymentMethodsScreen
+import com.example.android_project_msd.payment.PaymentMethodsViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Always start at the front page so the login/database flow shows first.
         val prefs = UserPrefs(this)
         val startDestination = Routes.FrontPage
 
@@ -39,9 +41,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = startDestination
                 ) {
                     composable(Routes.FrontPage) {
-                        FrontPage(
-                            onGetStarted = { navController.navigate(Routes.Login) }
-                        )
+                        FrontPage(onGetStarted = { navController.navigate(Routes.Login) })
                     }
 
                     composable(Routes.Login) {
@@ -66,9 +66,7 @@ class MainActivity : ComponentActivity() {
                                     launchSingleTop = true
                                 }
                             },
-                            onCancel = {
-                                navController.popBackStack()
-                            }
+                            onCancel = { navController.popBackStack() }
                         )
                     }
 
@@ -91,9 +89,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         route = Routes.GroupDetail,
-                        arguments = listOf(
-                            navArgument(Routes.GroupDetailArg) { type = NavType.StringType }
-                        )
+                        arguments = listOf(navArgument(Routes.GroupDetailArg) { type = NavType.StringType })
                     ) { backStackEntry ->
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupDetailArg).orEmpty()
                         GroupDetailRoute(
@@ -105,9 +101,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(
                         route = Routes.GroupSettings,
-                        arguments = listOf(
-                            navArgument(Routes.GroupSettingsArg) { type = NavType.StringType }
-                        )
+                        arguments = listOf(navArgument(Routes.GroupSettingsArg) { type = NavType.StringType })
                     ) { backStackEntry ->
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupSettingsArg).orEmpty()
                         GroupSettingsRoute(
@@ -116,7 +110,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // navController to ProfileScreen
                     composable(Routes.Profile) {
                         ProfileScreen(navController = navController)
                     }
@@ -128,6 +121,14 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Routes.Groups)
                             },
                             onCancel = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(Routes.PaymentMethods) {
+                        val vm: PaymentMethodsViewModel = viewModel()
+                        PaymentMethodsScreen(
+                            vm = vm,
+                            onBack = { navController.popBackStack() }
                         )
                     }
 

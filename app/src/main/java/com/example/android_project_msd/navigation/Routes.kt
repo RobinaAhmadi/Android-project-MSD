@@ -22,4 +22,7 @@ object Routes {
 
     // Debug-route for notification (temporary)
     const val NotificationsDebug = "notifications_debug"
+
+    const val PaymentMethods = "payment_methods"
+
 }

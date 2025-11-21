@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.android_project_msd.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,21 +55,13 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "User Profile",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White
-                    )
-                },
+                title = { Text("User Profile", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = Color.Transparent
@@ -94,7 +87,6 @@ fun ProfileScreen(
                     modifier = Modifier.size(140.dp),
                     contentAlignment = Alignment.Center
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(110.dp)
@@ -109,8 +101,7 @@ fun ProfileScreen(
                         if (uiState.profileImageUrl.isNullOrEmpty()) {
                             Text(
                                 text = if (uiState.isUploadingImage) "Uploading..." else "Add photo",
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium
+                                color = Color.White
                             )
                         } else {
                             AsyncImage(
@@ -208,7 +199,7 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Save / Edit button
+                // Save / Edit
                 Button(
                     onClick = viewModel::onToggleEditMode,
                     modifier = Modifier
@@ -216,11 +207,32 @@ fun ProfileScreen(
                         .height(52.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text(
-                        if (uiState.isEditing) "Save Changes" else "Edit Profile",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Text(if (uiState.isEditing) "Save Changes" else "Edit Profile")
                 }
+
+                Spacer(Modifier.height(16.dp))
+
+                // ADD "Manage Payment Methods" BUTTON HERE
+                OutlinedButton(
+                    onClick = { navController.navigate(Routes.PaymentMethods) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        width = 1.dp,
+                        brush = Brush.horizontalGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.8f),
+                                Color.White.copy(alpha = 0.4f)
+                            )
+                        )
+                    )
+                ) {
+                    Text("Manage Payment Methods")
+                }
+
             }
 
             if (uiState.isLoading) {
