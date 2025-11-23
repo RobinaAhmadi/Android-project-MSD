@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,12 +19,13 @@ import com.example.android_project_msd.home.HomeScreen
 import com.example.android_project_msd.login.LoginScreen
 import com.example.android_project_msd.navigation.Routes
 import com.example.android_project_msd.notifications.NotificationDebugScreen
+import com.example.android_project_msd.notifications.NotificationsViewModel
 import com.example.android_project_msd.profile.ProfileScreen
 import com.example.android_project_msd.utils.UserPrefs
 import com.example.android_project_msd.groups.groupsettings.GroupSettingsRoute
 import com.example.android_project_msd.payment.PaymentMethodsScreen
 import com.example.android_project_msd.payment.PaymentMethodsViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = startDestination
                 ) {
+
                     composable(Routes.FrontPage) {
                         FrontPage(onGetStarted = { navController.navigate(Routes.Login) })
                     }
@@ -70,12 +73,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // HOME SCREEN
                     composable(Routes.Home) {
+
+                        // Notifications VM
+                        val vm: NotificationsViewModel = viewModel()
+
+                        // FIX: Must use initial = emptyList()
+                        val invitations = vm.invitations.collectAsState(initial = emptyList())
+
                         HomeScreen(
                             onProfile = { navController.navigate(Routes.Profile) },
                             onCreateGroup = { navController.navigate(Routes.CreateGroup) },
                             onMyGroups = { navController.navigate(Routes.Groups) },
-                            onNotificationsDebug = { navController.navigate(Routes.NotificationsDebug) }
+                            onNotificationsDebug = { navController.navigate(Routes.NotificationsDebug) },
+
+                            // FIX: must use invitations.value
+                            hasNotifications = invitations.value.isNotEmpty()
                         )
                     }
 
@@ -92,6 +106,7 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument(Routes.GroupDetailArg) { type = NavType.StringType })
                     ) { backStackEntry ->
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupDetailArg).orEmpty()
+
                         GroupDetailRoute(
                             groupId = groupId,
                             onBack = { navController.popBackStack() },
@@ -104,6 +119,7 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument(Routes.GroupSettingsArg) { type = NavType.StringType })
                     ) { backStackEntry ->
                         val groupId = backStackEntry.arguments?.getString(Routes.GroupSettingsArg).orEmpty()
+
                         GroupSettingsRoute(
                             groupId = groupId,
                             onBack = { navController.popBackStack() }
@@ -111,7 +127,16 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Routes.Profile) {
-                        ProfileScreen(navController = navController)
+                        ProfileScreen(
+                            navController = navController,
+                            onLogout = {
+                                prefs.setLoggedIn(false)
+                                navController.navigate(Routes.Login) {
+                                    popUpTo(Routes.Home) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
                     }
 
                     composable(Routes.CreateGroup) {

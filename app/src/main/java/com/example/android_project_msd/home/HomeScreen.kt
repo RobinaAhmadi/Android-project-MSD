@@ -9,16 +9,20 @@ import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 
 private val BgStart = Color(0xFF131B63)
 private val BgEnd = Color(0xFF481162)
@@ -29,6 +33,7 @@ fun HomeScreen(
     onCreateGroup: () -> Unit,
     onMyGroups: () -> Unit,
     onNotificationsDebug: () -> Unit,
+    hasNotifications: Boolean,
     modifier: Modifier = Modifier
 ) {
 
@@ -46,6 +51,7 @@ fun HomeScreen(
             onClick = onProfile,
             modifier = Modifier
                 .align(Alignment.TopStart)
+                .padding(top = 28.dp)
                 .size(48.dp)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.15f))
@@ -57,19 +63,43 @@ fun HomeScreen(
             )
         }
 
-        IconButton(
-            onClick = onNotificationsDebug,
+
+        Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .padding(top = 28.dp)
                 .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.15f))
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Notifications",
-                tint = Color.White
-            )
+
+            val shake = remember { Animatable(0f) }
+
+            if (hasNotifications) {
+                LaunchedEffect(true) {
+                    while (true) {
+                        shake.animateTo(6f, animationSpec = tween(80))
+                        shake.animateTo(-6f, animationSpec = tween(80))
+                        shake.animateTo(0f, animationSpec = tween(80))
+                        delay(500)
+                    }
+                }
+            }
+
+            IconButton(
+                onClick = onNotificationsDebug,
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        rotationZ = shake.value
+                    }
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.15f))
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Notifications,
+                    contentDescription = "Notifications",
+                    tint = if (hasNotifications) Color(0xFFFF3B30) else Color.White
+                )
+            }
         }
 
 
@@ -86,7 +116,6 @@ fun HomeScreen(
                 .alpha(0.45f)
         )
 
-
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -94,7 +123,6 @@ fun HomeScreen(
                 .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
 
             Text(
                 text = "Evenly makes it easy",
@@ -113,8 +141,6 @@ fun HomeScreen(
             )
 
             Spacer(Modifier.height(34.dp))
-
-
 
             GlassButton(
                 icon = Icons.Outlined.Group,

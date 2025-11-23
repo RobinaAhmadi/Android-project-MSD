@@ -32,6 +32,7 @@ import com.example.android_project_msd.navigation.Routes
 @Composable
 fun ProfileScreen(
     navController: NavController,
+    onLogout: () -> Unit,                // ✅ ADDED
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -58,10 +59,16 @@ fun ProfileScreen(
                 title = { Text("User Profile", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
         },
         containerColor = Color.Transparent
@@ -212,7 +219,7 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // ADD "Manage Payment Methods" BUTTON HERE
+                // Manage payment methods
                 OutlinedButton(
                     onClick = { navController.navigate(Routes.PaymentMethods) },
                     modifier = Modifier
@@ -233,6 +240,21 @@ fun ProfileScreen(
                     Text("Manage Payment Methods")
                 }
 
+                Spacer(Modifier.height(16.dp))
+
+                // LOGOUT BUTTON
+                Button(
+                    onClick = onLogout,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE05757)
+                    )
+                ) {
+                    Text("Logout", color = Color.White)
+                }
             }
 
             if (uiState.isLoading) {
