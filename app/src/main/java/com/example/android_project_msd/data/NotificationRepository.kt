@@ -324,6 +324,30 @@ class NotificationRepository {
         awaitClose { registration.remove() }
     }
 
+    suspend fun clearUserNotifications(userId: String): Result<Unit> {
+        return try {
+            val collection = userNotificationsCollection
+                .document(userId)
+                .collection("entries")
+
+            val snapshot = collection.get().await()
+            if (snapshot.isEmpty) {
+                return Result.success(Unit)
+            }
+
+            val batch = firestore.batch()
+            snapshot.documents.forEach { doc ->
+                batch.delete(doc.reference)
+            }
+
+            batch.commit().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("NotificationRepo", "Failed to clear notifications: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
     private fun AppNotification.toFirestoreMap(): Map<String, Any> {
         val data = mutableMapOf<String, Any>(
             "id" to id,

@@ -28,7 +28,6 @@ import com.example.android_project_msd.groups.groupsettings.GroupSettingsRoute
 import com.example.android_project_msd.payment.PaymentMethodsScreen
 import com.example.android_project_msd.payment.PaymentMethodsViewModel
 import androidx.compose.runtime.collectAsState
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,20 +77,20 @@ class MainActivity : ComponentActivity() {
                     // HOME SCREEN
                     composable(Routes.Home) {
 
-                        // Notifications VM
                         val vm: NotificationsViewModel = viewModel()
 
-                        // FIX: Must use initial = emptyList()
                         val invitations = vm.invitations.collectAsState(initial = emptyList())
+                        val activityNotifications = NotificationCenter.notifications.collectAsState()
 
                         HomeScreen(
                             onProfile = { navController.navigate(Routes.Profile) },
                             onCreateGroup = { navController.navigate(Routes.CreateGroup) },
                             onMyGroups = { navController.navigate(Routes.Groups) },
-                            onNotificationsDebug = { navController.navigate(Routes.NotificationsDebug) },
-
-                            // FIX: must use invitations.value
-                            hasNotifications = invitations.value.isNotEmpty()
+                            onNotificationsDebug = {
+                                navController.navigate(Routes.NotificationsDebug)
+                            },
+                            hasNotifications = invitations.value.isNotEmpty() ||
+                                activityNotifications.value.isNotEmpty()
                         )
                     }
 

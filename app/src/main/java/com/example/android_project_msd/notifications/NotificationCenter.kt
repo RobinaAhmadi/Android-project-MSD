@@ -1,5 +1,6 @@
 package com.example.android_project_msd.notifications
 
+import android.util.Log
 import com.example.android_project_msd.data.NotificationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 object NotificationCenter {
+    private const val TAG = "NotificationCenter"
     private val notificationRepository = NotificationRepository()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _notifications = MutableStateFlow<List<AppNotification>>(emptyList())
@@ -42,6 +44,17 @@ object NotificationCenter {
         remoteJob = null
         remoteUserId = null
         _notifications.value = emptyList()
+    }
+
+    fun clearNotifications() {
+        _notifications.value = emptyList()
+        val userId = remoteUserId ?: return
+        scope.launch {
+            notificationRepository.clearUserNotifications(userId)
+                .onFailure { error ->
+                    Log.e(TAG, "Failed to clear notifications: ${error.message}", error)
+                }
+        }
     }
 
     fun notifyExpenseAdded(

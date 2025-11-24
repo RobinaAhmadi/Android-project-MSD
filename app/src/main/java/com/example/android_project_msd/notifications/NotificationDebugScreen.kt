@@ -35,6 +35,7 @@ fun NotificationDebugScreen(
 ) {
     val invitations by viewModel.invitations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val activityNotifications by NotificationCenter.notifications.collectAsState()
 
     Scaffold(
         topBar = {
@@ -73,6 +74,42 @@ fun NotificationDebugScreen(
 
             Column {
                 Text(
+                    text = "Group Activity",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Latest expenses, payments, and reminders",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.75f)
+                )
+
+                if (activityNotifications.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { NotificationCenter.clearNotifications() }
+                        ) {
+                            Text("Clear all")
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                if (activityNotifications.isEmpty()) {
+                    NotificationEmptyState()
+                } else {
+                    ActivityNotificationList(notifications = activityNotifications)
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                Text(
                     text = "Group Invitations",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
@@ -94,6 +131,94 @@ fun NotificationDebugScreen(
                         viewModel = viewModel
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationEmptyState() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        color = Color.White.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "No notifications yet",
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Expenses, payments, and reminders will show up here.",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityNotificationList(notifications: List<AppNotification>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 280.dp)
+    ) {
+        items(notifications) { notification ->
+            ActivityNotificationCard(notification = notification)
+            Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun ActivityNotificationCard(notification: AppNotification) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp)),
+        color = CardBackground,
+        shadowElevation = 4.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                notification.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF1D0F2A),
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(6.dp))
+
+            Text(
+                notification.line1,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF4A4A4A)
+            )
+
+            notification.line2?.takeIf { it.isNotBlank() }?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF6D6D6D)
+                )
+            }
+
+            notification.youOweLine?.takeIf { it.isNotBlank() }?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFD7266B),
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
