@@ -111,7 +111,8 @@ class MainActivity : ComponentActivity() {
                         GroupDetailRoute(
                             groupId = groupId,
                             onBack = { navController.popBackStack() },
-                            onSettings = { navController.navigate(Routes.groupSettings(groupId)) }
+                            onSettings = { navController.navigate(Routes.groupSettings(groupId)) },
+                            onOpenNotifications = { navController.navigate(Routes.NotificationsDebug) }
                         )
                     }
 

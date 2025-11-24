@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.runtime)
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.01"))
 
     implementation("androidx.activity:activity-compose:1.9.2")

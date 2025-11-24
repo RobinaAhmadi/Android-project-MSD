@@ -37,7 +37,8 @@ fun GroupDetailRoute(
     groupId: String,
     vm: GroupDetailViewModel = viewModel(),
     onBack: () -> Unit = {},
-    onSettings: () -> Unit = {}
+    onSettings: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
     val memberDisplayNames = remember(ui.members) {
@@ -261,14 +262,15 @@ fun GroupDetailRoute(
                             val isYouCreditor = currentUserActualName != null &&
                                     settlement.toPerson == currentUserActualName
 
-                            SettlementCard(
-                                settlement = settlement,
-                                showReminder = isYouCreditor,
-                                onReminderClick = {
-                                    vm.sendReminderForSettlement(settlement)
-                                },
-                                nameLookup = memberDisplayNames
-                            )
+        SettlementCard(
+            settlement = settlement,
+            showReminder = isYouCreditor,
+            onReminderClick = {
+                vm.sendReminderForSettlement(settlement)
+                onOpenNotifications()
+            },
+            nameLookup = memberDisplayNames
+        )
 
                             Spacer(Modifier.height(10.dp))
                         }
