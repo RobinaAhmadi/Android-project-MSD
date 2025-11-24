@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_project_msd.data.UserRepository
 import com.example.android_project_msd.data.UserSession
+import com.example.android_project_msd.notifications.NotificationCenter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -94,6 +95,7 @@ class CreateProfileViewModel(application: Application) : AndroidViewModel(applic
                 result.fold(
                     onSuccess = { user ->
                         UserSession.login(user.id, user.email)
+                        NotificationCenter.startSync(user.id)
                         _ui.value = _ui.value.copy(isLoading = false, error = null)
                         onSuccess()
                     },

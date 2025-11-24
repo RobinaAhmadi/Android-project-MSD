@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.android_project_msd.createprofile.CreateProfileRoute
+import com.example.android_project_msd.data.UserSession
 import com.example.android_project_msd.frontpage.FrontPage
 import com.example.android_project_msd.groups.creategroup.CreateGroupFullRoute
 import com.example.android_project_msd.groups.groupdetail.GroupDetailRoute
@@ -18,6 +19,7 @@ import com.example.android_project_msd.groups.grouplist.GroupsRoute
 import com.example.android_project_msd.home.HomeScreen
 import com.example.android_project_msd.login.LoginScreen
 import com.example.android_project_msd.navigation.Routes
+import com.example.android_project_msd.notifications.NotificationCenter
 import com.example.android_project_msd.notifications.NotificationDebugScreen
 import com.example.android_project_msd.notifications.NotificationsViewModel
 import com.example.android_project_msd.profile.ProfileScreen
@@ -130,6 +132,8 @@ class MainActivity : ComponentActivity() {
                         ProfileScreen(
                             navController = navController,
                             onLogout = {
+                                UserSession.logout()
+                                NotificationCenter.stopSync()
                                 prefs.setLoggedIn(false)
                                 navController.navigate(Routes.Login) {
                                     popUpTo(Routes.Home) { inclusive = true }

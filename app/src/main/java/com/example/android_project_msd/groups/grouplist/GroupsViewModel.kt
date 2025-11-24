@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_project_msd.data.GroupRepository
+import com.example.android_project_msd.data.ExpenseRepository
 import com.example.android_project_msd.data.UserSession
+import com.example.android_project_msd.groups.data.DebtCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ data class GroupsUiState(
 
 class GroupsViewModel : ViewModel() {
     private val groupRepository = GroupRepository()
+    private val expenseRepository = ExpenseRepository()
     private val _ui = MutableStateFlow(GroupsUiState())
     val ui = _ui.asStateFlow()
 
@@ -48,12 +51,24 @@ class GroupsViewModel : ViewModel() {
                 Log.d("GroupsVM", "Loaded ${firebaseGroups.size} groups")
 
                 val groups = firebaseGroups.map { firebaseGroup ->
+                    val expenseResult = expenseRepository.getExpensesOnce(firebaseGroup.id)
+                    val expenses = expenseResult.getOrElse { emptyList() }
+
+                    val memberNames = firebaseGroup.memberNames
+                    val balances = DebtCalculator.calculateBalances(
+                        expenses = expenses,
+                        members = memberNames
+                    )
+
+                    val currentUserName = getCurrentUserName(firebaseGroup.members, memberNames, userId)
+                    val balance = currentUserName?.let { balances[it] } ?: 0.0
+
                     Group(
                         id = firebaseGroup.id,
                         name = firebaseGroup.name,
                         description = firebaseGroup.description,
                         memberCount = firebaseGroup.members.size,
-                        balance = 0.0 // TODO: Calculate from expenses
+                        balance = balance
                     )
                 }
 
@@ -88,6 +103,19 @@ class GroupsViewModel : ViewModel() {
                     Log.e("GroupsVM", "Error deleting group: ${error.message}")
                 }
             )
+        }
+    }
+
+    private fun getCurrentUserName(
+        memberIds: List<String>,
+        memberNames: List<String>,
+        userId: String
+    ): String? {
+        val index = memberIds.indexOf(userId)
+        return if (index != -1 && index < memberNames.size) {
+            memberNames[index]
+        } else {
+            null
         }
     }
 }

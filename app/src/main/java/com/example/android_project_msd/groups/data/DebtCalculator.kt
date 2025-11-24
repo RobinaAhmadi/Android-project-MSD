@@ -175,10 +175,11 @@ object DebtCalculator {
  * Data class for Expense (moving from GroupDetailViewModel to shared location)
  */
 data class Expense(
-    val id: String,
-    val description: String,
-    val amount: Double,
-    val paidBy: String,
-    val splitAmong: List<String>,
-    val date: String
+    val id: String = "",
+    val description: String = "",
+    val amount: Double = 0.0,
+    val paidBy: String = "",
+    val splitAmong: List<String> = emptyList(),
+    val date: String = "",
+    val createdAt: Long = 0L
 )

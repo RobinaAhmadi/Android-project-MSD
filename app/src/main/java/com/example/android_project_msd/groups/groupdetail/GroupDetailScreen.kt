@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.android_project_msd.data.UserSession
 import com.example.android_project_msd.groups.data.Expense
 import com.example.android_project_msd.groups.data.Settlement
 
@@ -39,6 +40,13 @@ fun GroupDetailRoute(
     onSettings: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
+    val memberDisplayNames = remember(ui.members) {
+        ui.members.associate { it.name to it.displayName.ifBlank { it.name } }
+    }
+    val currentUserActualName = remember(ui.members) {
+        val userId = UserSession.currentUserId
+        ui.members.find { it.id == userId }?.name
+    }
 
     var showAddExpenseDialog by remember { mutableStateOf(false) }
     var showAddMemberDialog by remember { mutableStateOf(false) }
@@ -250,15 +258,16 @@ fun GroupDetailRoute(
                         }
 
                         items(ui.settlements) { settlement ->
-
-                            val isYouCreditor = settlement.toPerson == "You"
+                            val isYouCreditor = currentUserActualName != null &&
+                                    settlement.toPerson == currentUserActualName
 
                             SettlementCard(
                                 settlement = settlement,
                                 showReminder = isYouCreditor,
                                 onReminderClick = {
                                     vm.sendReminderForSettlement(settlement)
-                                }
+                                },
+                                nameLookup = memberDisplayNames
                             )
 
                             Spacer(Modifier.height(10.dp))
@@ -312,7 +321,7 @@ fun GroupDetailRoute(
                         }
                     } else {
                         items(ui.expenses) { expense ->
-                            ExpenseItem(expense)
+                            ExpenseItem(expense, memberDisplayNames)
                             Spacer(Modifier.height(10.dp))
                         }
                     }
@@ -362,7 +371,8 @@ fun GroupDetailRoute(
 fun SettlementCard(
     settlement: Settlement,
     showReminder: Boolean,
-    onReminderClick: () -> Unit
+    onReminderClick: () -> Unit,
+    nameLookup: Map<String, String> = emptyMap()
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -386,8 +396,11 @@ fun SettlementCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                val fromDisplay = nameLookup[settlement.fromPerson] ?: settlement.fromPerson
+                val toDisplay = nameLookup[settlement.toPerson] ?: settlement.toPerson
+
                 Text(
-                    "${settlement.fromPerson} owes ${settlement.toPerson}",
+                    "$fromDisplay owes $toDisplay",
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -452,8 +465,10 @@ fun MemberItem(member: GroupMember) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
+                val label = member.displayName.ifBlank { member.name }
+                val initial = label.firstOrNull()?.uppercase() ?: ""
                 Text(
-                    member.name.first().uppercase(),
+                    initial,
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -466,7 +481,7 @@ fun MemberItem(member: GroupMember) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    member.name,
+                    member.displayName.ifBlank { member.name },
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
@@ -500,7 +515,7 @@ fun MemberItem(member: GroupMember) {
 }
 
 @Composable
-fun ExpenseItem(expense: Expense) {
+fun ExpenseItem(expense: Expense, nameLookup: Map<String, String>) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -539,8 +554,10 @@ fun ExpenseItem(expense: Expense) {
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
+                val payerDisplay = nameLookup[expense.paidBy] ?: expense.paidBy
+
                 Text(
-                    "Paid by ${expense.paidBy}",
+                    "Paid by $payerDisplay",
                     color = Color(0xFF757575),
                     fontSize = 13.sp
                 )
@@ -623,7 +640,7 @@ fun AddExpenseDialog(
     var expandedPayer by remember { mutableStateOf(false) }
 
     val selectedSplitMembers =
-        remember { mutableStateListOf<String>().apply { addAll(members.map { it.name }) } }
+        remember(members) { mutableStateListOf<String>().apply { addAll(members.map { it.name }) } }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -667,8 +684,11 @@ fun AddExpenseDialog(
                     onExpandedChange = { expandedPayer = !expandedPayer }
                 ) {
 
+                    val payerDisplay = members.firstOrNull { it.name == selectedPayer }?.displayName
+                        ?: selectedPayer
+
                     OutlinedTextField(
-                        value = selectedPayer,
+                        value = payerDisplay,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Paid by") },
@@ -686,7 +706,7 @@ fun AddExpenseDialog(
                     ) {
                         members.forEach { member ->
                             DropdownMenuItem(
-                                text = { Text(member.name) },
+                                text = { Text(member.displayName.ifBlank { member.name }) },
                                 onClick = {
                                     selectedPayer = member.name
                                     expandedPayer = false
@@ -712,7 +732,7 @@ fun AddExpenseDialog(
                                 else selectedSplitMembers.remove(member.name)
                             }
                         )
-                        Text(member.name)
+                        Text(member.displayName.ifBlank { member.name })
                     }
                 }
             }
@@ -826,8 +846,11 @@ fun RecordPaymentDialog(
                     onExpandedChange = { expandedFrom = !expandedFrom }
                 ) {
 
+                    val fromDisplay = members.firstOrNull { it.name == selectedFrom }?.displayName
+                        ?: selectedFrom
+
                     OutlinedTextField(
-                        value = selectedFrom,
+                        value = fromDisplay,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("From (payer)") },
@@ -845,7 +868,7 @@ fun RecordPaymentDialog(
                     ) {
                         members.forEach { member ->
                             DropdownMenuItem(
-                                text = { Text(member.name) },
+                                text = { Text(member.displayName.ifBlank { member.name }) },
                                 onClick = {
                                     selectedFrom = member.name
                                     expandedFrom = false
@@ -861,8 +884,11 @@ fun RecordPaymentDialog(
                     onExpandedChange = { expandedTo = !expandedTo }
                 ) {
 
+                    val toDisplay = members.firstOrNull { it.name == selectedTo }?.displayName
+                        ?: selectedTo
+
                     OutlinedTextField(
-                        value = selectedTo,
+                        value = toDisplay,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("To (receiver)") },
@@ -880,7 +906,7 @@ fun RecordPaymentDialog(
                     ) {
                         members.forEach { member ->
                             DropdownMenuItem(
-                                text = { Text(member.name) },
+                                text = { Text(member.displayName.ifBlank { member.name }) },
                                 onClick = {
                                     selectedTo = member.name
                                     expandedTo = false

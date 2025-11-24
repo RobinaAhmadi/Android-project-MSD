@@ -51,6 +51,10 @@ dependencies {
 
     // Compose BOM + base libs
     implementation(platform("androidx.compose:compose-bom:2024.09.01"))
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.01"))
 
     implementation("androidx.activity:activity-compose:1.9.2")
@@ -72,6 +76,15 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")   // *** REQUIRED FOR PROFILE PICS ***
 
+    // Retrofit dependencies (for HttpException)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+// Retrofit Core
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+// Gson converter for Retrofit
+    // Retrofit converter for Moshi
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+// OkHttp Logging Interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
     // Optional Firebase modules you already used
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
@@ -83,4 +96,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    // Moshi for JSON parsing
+    implementation("com.squareup.moshi:moshi:1.13.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.13.0")
+// For Kotlin support
 }
